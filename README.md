@@ -1,2 +1,2 @@
-# insideTrack
+# InsideTrack
 InsideTrack Hack
