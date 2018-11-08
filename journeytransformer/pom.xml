@@ -13,6 +13,22 @@
 	</parent>
 	<dependencies>
 	<dependency>
+		<groupId>net.atpco.distribution</groupId>
+		<artifactId>engine-common</artifactId>
+		<version>${project.version}</version>
+	</dependency>
+	<dependency>
+		<groupId>net.atpco.distribution</groupId>
+		<artifactId>journey-server</artifactId>
+		<version>${project.version}</version>
+	</dependency>
+	<dependency>
+	
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+			<optional>true</optional>
+		</dependency>
+	<dependency>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-web</artifactId>
 	</dependency>
