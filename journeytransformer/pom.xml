@@ -19,7 +19,7 @@
 	</dependency>
 	<dependency>
 		<groupId>net.atpco.distribution</groupId>
-		<artifactId>journey-server</artifactId>
+		<artifactId>journey-client</artifactId>
 		<version>${project.version}</version>
 	</dependency>
 	<dependency>
