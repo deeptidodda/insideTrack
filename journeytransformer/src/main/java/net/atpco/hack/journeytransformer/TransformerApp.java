@@ -12,9 +12,9 @@ import org.springframework.boot.autoconfigure.mongo.embedded.EmbeddedMongoAutoCo
 @SpringBootApplication(exclude={MongoAutoConfiguration.class, MongoDataAutoConfiguration.class, EmbeddedMongoAutoConfiguration.class,
 		JmxAutoConfiguration.class, SpringApplicationAdminJmxAutoConfiguration.class, 
 		IntegrationAutoConfiguration.class})
-public class App {
+public class TransformerApp {
 
 	public static void main(String[] args) {
-		SpringApplication.run(App.class, args);
+		SpringApplication.run(TransformerApp.class, args);
 	}
 }
