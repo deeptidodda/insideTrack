@@ -1,0 +1,27 @@
+management:
+  endpoint:
+    shutdown:
+      enabled: true
+  server:
+    servlet:
+      context-path: /manage
+    port: 8081
+  
+server: 
+  port: 8082
+  
+spring:
+  application:
+    name: transform-engine  
+eureka:
+  client:
+    enabled: false
+---
+
+spring:
+  profiles: prod
+       
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://localhost:8061/eureka

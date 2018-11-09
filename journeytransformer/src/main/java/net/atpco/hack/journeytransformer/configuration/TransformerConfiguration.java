@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.Environment;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
@@ -27,6 +28,10 @@ import net.atpco.journey.request.ItineraryFilterOption;
 import net.atpco.pricing.version.QueryVersionHelper;
 
 @Configuration
+@PropertySource(ignoreResourceNotFound = true, value = { "file:/opt/pricing/engine/properties/journey.properties",
+		"file:/opt/pricing/engine/properties/redis.properties",
+		"file:/opt/pricing/engine/properties/metrics.properties",
+		"file:/opt/pricing/engine/properties/engine-neo4j.properties" })
 @Import({JourneyClientConfiguration.class, QueryCacheConfiguration.class, LocationEngineConfiguration.class, QueryVersionConfiguration.class, JourneyEngineKryoConfiguration.class,JourneyClientCommonConfiguration.class})
 public class TransformerConfiguration {
 	
