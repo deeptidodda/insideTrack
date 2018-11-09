@@ -17,6 +17,7 @@ import net.atpco.journey.request.JourneyQuery;
 import net.atpco.journey.schedule.FareComponentResponse;
 import net.atpco.loader.Loader;
 import net.atpco.pricing.version.QueryVersionHelper;
+import net.atpco.version.common.VersionQuery;
 
 public class SalesDataReader extends CSVFileReader<SalesData>{
 	
@@ -31,9 +32,11 @@ public class SalesDataReader extends CSVFileReader<SalesData>{
 	private int lineNumber = 0;
 
 	private DateFormat srcDf = new SimpleDateFormat("yyyy-MM-dd");
+	
+	private DateFormat tkDf = new SimpleDateFormat("ddMMMyy");
 
 	public SalesDataReader(Loader loader, JourneyClientHelper journeyClientHelper, QueryVersionHelper versionHelper, ItineraryBuddy buddy) {
-		super(loader);
+		super(loader, true);
 		this.journeyClientHelper = journeyClientHelper;
 		this.versionHelper = versionHelper;
 		this.buddy = buddy;
@@ -55,10 +58,14 @@ public class SalesDataReader extends CSVFileReader<SalesData>{
 
 			Date stdate = srcDf.parse(data.getFlightDates()[0]);
 			DateRange travelStartDateRange = new DateRange(stdate, stdate);
-			Date ticketingDate = srcDf.parse(data.getTicketingDate());
+			Date ticketingDate = tkDf.parse(data.getTicketingDate());
 
-			long version = versionHelper.getSubsVersionFromTime(ticketingDate.getTime());
+			Long version = versionHelper.getSubsVersionFromTime(ticketingDate.getTime());
 
+			if(version == null) {
+				version = 1L;
+			}
+			VersionQuery.set(version);
 			JourneyQuery query = new JourneyQuery(origin, destination, travelStartDateRange, null, "OW", true, buddy, CityAirportFCType.AIRPORT, version);
 
 			FareComponentResponse response = journeyClientHelper.getJourneys(query);

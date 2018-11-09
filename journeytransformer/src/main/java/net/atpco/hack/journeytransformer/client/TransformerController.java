@@ -22,7 +22,7 @@ public class TransformerController {
 	@RequestMapping("/js")
 	public void transformSalesData() {
 
-		dataReader.read(Paths.get("/hack/insideTrack/itinerary.csv"));
+		dataReader.read(Paths.get("/hack/insideTrack/data/itinerary.csv"));
 	}
 
 }
