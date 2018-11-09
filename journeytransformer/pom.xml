@@ -12,25 +12,36 @@
 		<version>2.1.0.RELEASE</version>
 	</parent>
 	<dependencies>
-	<dependency>
-		<groupId>net.atpco.distribution</groupId>
-		<artifactId>engine-common</artifactId>
-		<version>${project.version}</version>
-	</dependency>
-	<dependency>
-		<groupId>net.atpco.distribution</groupId>
-		<artifactId>journey-client</artifactId>
-		<version>${project.version}</version>
-	</dependency>
-	<dependency>
-	
+		<dependency>
+			<groupId>net.atpco.distribution</groupId>
+			<artifactId>engine-common</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>net.atpco.distribution</groupId>
+			<artifactId>journey-client</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>net.atpco.distribution</groupId>
+			<artifactId>engine-serializers</artifactId>
+			<version>${project.version}</version>
+			<exclusions>
+				<exclusion>
+					<artifactId>log4j</artifactId>
+					<groupId>log4j</groupId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
 			<optional>true</optional>
 		</dependency>
-	<dependency>
-		<groupId>org.springframework.boot</groupId>
-		<artifactId>spring-boot-starter-web</artifactId>
-	</dependency>
-</dependencies>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-web</artifactId>
+		</dependency>
+	</dependencies>
 </project>
