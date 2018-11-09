@@ -10,11 +10,12 @@ import net.atpco.loader.Workable;
 @Getter
 public class SalesData implements Workable{
 
-	private String[] flightPath;
-	private String[] flightDates;
-	private String[] arrivalTimes;
 	private String[] departureTimes;
+	private String[] arrivalTimes;
+	private String[] flightDates;
 	private String[] marketingCarriers;
 	private String[] marketingFlightNumbers;
-	
+	private String ticketingDate;
+	private String[] flightPath;
+
 }
