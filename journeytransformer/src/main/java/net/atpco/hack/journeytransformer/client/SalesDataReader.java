@@ -72,7 +72,7 @@ public class SalesDataReader extends CSVFileReader<SalesData>{
 			
 			transformResponse.transform(data, response, OUTPUT_DIR + "/" + origin + "-" + destination + "-" + lineNumber++ +  ".csv");
 			
-		} catch (ParseException e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		return null;
