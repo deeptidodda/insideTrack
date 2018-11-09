@@ -21,6 +21,7 @@ import net.atpco.engine.common.itinerary.Itinerary;
 import net.atpco.engine.common.itinerary.ItineraryLeg;
 import net.atpco.engine.common.itinerary.JourneyFlights;
 import net.atpco.engine.common.pricing.Journey;
+import net.atpco.hack.journeytransformer.vo.SalesData;
 import net.atpco.journey.schedule.FareComponentResponse;
 
 public class TransformResponse {
@@ -33,7 +34,7 @@ public class TransformResponse {
 	};
 
 	@SneakyThrows
-	public void transform(FareComponentResponse response, String outFileName) throws IOException {
+	public void transform(SalesData salesData, FareComponentResponse response, String outFileName) throws IOException {
 		int count = 0;
 		try (PrintStream os = new PrintStream(Files.newOutputStream(Paths.get(outFileName)), true)) {
 			os.println("DPTR_TM1,DPTR_TM2,DPTR_TM3,DPTR_TM4,DPTR_TM5,DPTR_TM6,DPTR_TM7,DPTR_TM8," +
