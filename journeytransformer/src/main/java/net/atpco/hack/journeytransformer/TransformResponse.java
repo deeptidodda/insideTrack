@@ -35,7 +35,6 @@ public class TransformResponse {
 
 	@SneakyThrows
 	public void transform(SalesData salesData, FareComponentResponse response, String outFileName) throws IOException {
-		int count = 0;
 		try (PrintStream os = new PrintStream(Files.newOutputStream(Paths.get(outFileName)), true)) {
 			os.println("DPTR_TM1,DPTR_TM2,DPTR_TM3,DPTR_TM4,DPTR_TM5,DPTR_TM6,DPTR_TM7,DPTR_TM8," +
 				"ARRV_TM1,ARRV_TM2,ARRV_TM3,ARRV_TM4,ARRV_TM5,ARRV_TM6,ARRV_TM7,ARRV_TM8," +
@@ -55,7 +54,7 @@ public class TransformResponse {
 						Flights flights = jf.get(index);
 						if (flights.containsCarrier("AF") >= 0) {
 							// include this one
-							exportFlights(itinerary, flights, os, count++);
+							exportFlights(itinerary, flights, os, salesData);
 						}
 					}
 				}
@@ -63,7 +62,7 @@ public class TransformResponse {
 		}
 	}
 
-	private void exportFlights(Itinerary itinerary, Flights flights, PrintStream os, int count) {
+	private void exportFlights(Itinerary itinerary, Flights flights, PrintStream os, SalesData salesData) {
 		StringBuilder sb = new StringBuilder();
 		
 		// departure times (8 fields)
@@ -99,11 +98,44 @@ public class TransformResponse {
 		sb.append(getDepartureDayOfWeek(itinerary) + ",");
 		sb.append(getArrivalDayOfWeek(itinerary) + ",");
 		sb.append(getFlightChangeType(flights) + ",");
-		sb.append(count%1000 == 0? "TRUE" : "FALSE");
+		sb.append(isMatch(itinerary, flights, salesData)? "TRUE" : "FALSE");
 		
 		os.println(sb.toString());
 	}
 	
+	private boolean isMatch(Itinerary itinerary, Flights flights, SalesData salesData) {
+		if (!getFlightPath(itinerary).equals(salesData.getFlightPath())) {
+			return false;
+		}
+		if (!flights.getCarrierCodes().equals(salesData.getMarketingCarriers())) {
+			return false;
+		}
+		if (!getFlightNumbers(flights).equals(salesData.getMarketingFlightNumbers())) {
+			return false;
+		}
+		
+		return true;
+	}
+	
+	private String[] getFlightNumbers(Flights flights) {
+		String[] flightNums = new String[flights.size()];
+		for (int index = 0; index < flights.size(); index++) {
+			Flight flt = flights.get(index);
+			flightNums[index] = String.valueOf(flt.getFlightNo());
+		}
+		return flightNums;
+	}
+
+	private String[] getFlightPath(Itinerary itinerary) {
+		String[] path = new String[itinerary.getNoOfLegs()+1];
+		for (int index = 0; index < itinerary.getNoOfLegs(); index++) {
+			ItineraryLeg leg = itinerary.getItineraryLeg(index);
+			path[index] = leg.getSegment().getOriginAirport();
+		}
+		path[itinerary.getNoOfLegs()] = itinerary.getLastLeg().getSegment().getDestinationAirport();
+		return path;
+	}
+
 	private String getFlightChangeType(Flights flights) {
 		String changeType = "ONLINE";
 		for (Flight flight : flights) {
