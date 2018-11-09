@@ -61,7 +61,7 @@ public class TransformResponse {
 			}
 		}
 	}
-
+ 
 	private void exportFlights(Itinerary itinerary, Flights flights, PrintStream os, SalesData salesData) {
 		StringBuilder sb = new StringBuilder();
 		

@@ -5,9 +5,10 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import lombok.SneakyThrows;
 import net.atpco.ash.io.CSVFileReader;
 import net.atpco.ash.vo.DateRange;
-import net.atpco.hack.journeytransformer.vo.JourneyTransformerRequest;
+import net.atpco.hack.journeytransformer.TransformResponse;
 import net.atpco.hack.journeytransformer.vo.SalesData;
 import net.atpco.journey.client.JourneyClientHelper;
 import net.atpco.journey.request.CityAirportFCType;
@@ -18,10 +19,16 @@ import net.atpco.loader.Loader;
 import net.atpco.pricing.version.QueryVersionHelper;
 
 public class SalesDataReader extends CSVFileReader<SalesData>{
+	
+	public static final String OUTPUT_DIR = "/dev/hack2018/output";
 
 	private final JourneyClientHelper journeyClientHelper;
 	private final QueryVersionHelper versionHelper;
 	private final ItineraryBuddy buddy;
+	
+	private final TransformResponse transformResponse = new TransformResponse();
+	
+	private int lineNumber = 0;
 
 	private DateFormat srcDf = new SimpleDateFormat("yyyy-MM-dd");
 
@@ -32,6 +39,7 @@ public class SalesDataReader extends CSVFileReader<SalesData>{
 		this.buddy = buddy;
 	}
 
+	@SneakyThrows
 	@Override
 	public SalesData process(String[] tokens) {
 		try {
@@ -55,14 +63,12 @@ public class SalesDataReader extends CSVFileReader<SalesData>{
 
 			FareComponentResponse response = journeyClientHelper.getJourneys(query);
 			
-			JourneyTransformerRequest request = new JourneyTransformerRequest(response, data);
+			transformResponse.transform(data, response, OUTPUT_DIR + "/" + origin + "-" + destination + "-" + lineNumber++ +  ".csv");
 			
 		} catch (ParseException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return null;
 	}
-
 
 }
