@@ -7,6 +7,7 @@ import java.nio.file.Paths;
 import java.time.DayOfWeek;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.Arrays;
 import java.util.List;
 
 import org.apache.commons.lang.ArrayUtils;
@@ -14,6 +15,7 @@ import org.apache.commons.lang.ArrayUtils;
 import com.google.common.collect.Range;
 
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import net.atpco.ash.vo.Defaults;
 import net.atpco.ash.vo.Flight;
 import net.atpco.ash.vo.Flights;
@@ -24,6 +26,7 @@ import net.atpco.engine.common.pricing.Journey;
 import net.atpco.hack.journeytransformer.vo.SalesData;
 import net.atpco.journey.schedule.FareComponentResponse;
 
+@Slf4j
 public class TransformResponse {
 
 	public static String[] SKYTEAM_ALLIANCE_CARRIERS = {
@@ -104,16 +107,28 @@ public class TransformResponse {
 	}
 
 	private boolean isMatch(Itinerary itinerary, Flights flights, SalesData salesData) {
-		if (!getFlightPath(itinerary).equals(salesData.getFlightPath())) {
+	
+		String[] flightPath = getFlightPath(itinerary);
+		String[] salesDataFlightPath = salesData.getFlightPath();
+
+		if (!Arrays.equals(flightPath, salesDataFlightPath)) {
+			
+		//	log.info("In isMatch Failed on getflightPath() salesdata : {} , itinearydata: {}", salesDataFlightPath, flightPath); 
 			return false;
 		}
-		if (!flights.getCarrierCodes().equals(salesData.getMarketingCarriers())) {
+		String[] carrierCodes = flights.getCarrierCodes();
+		String[] marketingCarriers = salesData.getMarketingCarriers();
+		
+		if (!Arrays.equals(carrierCodes, marketingCarriers)) {
+		//	log.info("In isMatch Failed on getMarketingCarriers() salesdata : {} , itinearydata: {}", marketingCarriers, carrierCodes); 
 			return false;
 		}
-		if (!getFlightNumbers(flights).equals(salesData.getMarketingFlightNumbers())) {
+		if (!Arrays.equals(getFlightNumbers(flights), salesData.getMarketingFlightNumbers())) {
+			//log.info("In isMatch Failed on getFlightNumbers() salesdata : {} , itinearydata: {}", salesData.getMarketingFlightNumbers(), getFlightNumbers(flights)); 
 			return false;
 		}
 
+		log.info("Success!!!!!");
 		return true;
 	}
 

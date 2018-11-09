@@ -6,12 +6,14 @@
 	<artifactId>journeytransformer</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<packaging>jar</packaging>
+
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
 		<version>2.1.0.RELEASE</version>
 	</parent>
 	<dependencies>
+	
 		<dependency>
 			<groupId>net.atpco.distribution</groupId>
 			<artifactId>engine-common</artifactId>
@@ -44,4 +46,25 @@
 			<artifactId>spring-boot-starter-web</artifactId>
 		</dependency>
 	</dependencies>
+	
+	<build>
+	    <plugins>
+	        <plugin>
+	            <groupId>org.springframework.boot</groupId>
+	            <artifactId>spring-boot-maven-plugin</artifactId>
+ 				<executions>
+					<execution>
+						<goals>
+							<goal>repackage</goal>
+						</goals>
+					</execution>
+				</executions>
+		        <configuration>
+		        <mainClass>net.atpco.hack.journeytransformer.TransformerApp</mainClass>
+  		            <excludeGroupIds>org.joda,org.projectlombok,com.ibm.mq,org.powermock,org.easymock,junit,com.ibm.db2,io.vertx,org.eclipse.jetty</excludeGroupIds>
+		        </configuration>				
+ 	        </plugin>
+ 	        
+		</plugins>
+	</build> 
 </project>
