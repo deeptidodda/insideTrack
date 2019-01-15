@@ -6,11 +6,14 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.function.BiPredicate;
 
+import org.apache.commons.lang3.ArrayUtils;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.atpco.ash.vo.DateRange;
+import net.atpco.ash.vo.Flight;
 import net.atpco.ash.vo.Flights;
 import net.atpco.ash.vo.LocalDateRange;
 import net.atpco.engine.common.itinerary.Itinerary;
@@ -51,16 +54,28 @@ public class ItineraryGenerator {
 			log.info("Sending journey query {}", new ObjectMapper().writeValueAsString(query));
 		
 			FareComponentResponse response = journeyClientHelper.getJourneys(query);
-			log.info("Received journey response {}", new ObjectMapper().writeValueAsString(response));
+			log.info("Successfully received journey response with {} journeys", response.getJourneys() != null? response.getJourneys().size():0);
 			
 			new File(OUTPUT_DIR).mkdirs();
 			final String outFileName = OUTPUT_DIR + "/" + req.getOrigin() + "-" + req.getDestination() + "-" +  DATE_FORMATTER.format(requestDate) +  ".csv";
 			log.info("Writing response to {}", outFileName);
-			transformResponse.transform(null, response, outFileName, buildFilter(req.getCarrier()));
+			transformResponse.transform(response, outFileName, buildFilter(req.getCarriers()), (it,fl)->false);
 		}
 	}
 	
-	public BiPredicate<Itinerary, Flights> buildFilter(String carrier) {
-		return (itinerary, flights) -> flights.isSameCarrier(carrier);
+	public BiPredicate<Itinerary, Flights> buildFilter(String[] carriers) {
+		if (carriers == null || carriers.length == 0) {
+			return (itinerary, flights) -> true;
+		} else if (carriers.length == 1) {
+			return (itinerary, flights) -> flights.isSameCarrier(carriers[0]);
+		} else {
+			return (itinerary, flights) -> {
+				for (Flight flight: flights) {
+					if (!ArrayUtils.contains(carriers, flight.getCarrier()))
+						return false;
+				}
+				return true;
+			};
+		}
 	}
 }

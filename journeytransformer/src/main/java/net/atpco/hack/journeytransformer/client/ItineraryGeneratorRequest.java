@@ -12,7 +12,7 @@ import lombok.Data;
 public class ItineraryGeneratorRequest {
 	private String origin;
 	private String destination;
-	private String carrier;
+	private String[] carriers;
 	
 	@JsonDeserialize(using=LocalDateDeserializer.class)
 	private LocalDate beginningDate;
