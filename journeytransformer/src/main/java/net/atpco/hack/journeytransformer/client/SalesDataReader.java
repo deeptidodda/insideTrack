@@ -1,13 +1,14 @@
 package net.atpco.hack.journeytransformer.client;
 
 import java.text.DateFormat;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import lombok.SneakyThrows;
 import net.atpco.ash.io.CSVFileReader;
 import net.atpco.ash.vo.DateRange;
+import net.atpco.ash.vo.Flights;
+import net.atpco.engine.common.itinerary.Itinerary;
 import net.atpco.hack.journeytransformer.TransformResponse;
 import net.atpco.hack.journeytransformer.vo.SalesData;
 import net.atpco.journey.client.JourneyClientHelper;
@@ -21,7 +22,7 @@ import net.atpco.version.common.VersionQuery;
 
 public class SalesDataReader extends CSVFileReader<SalesData>{
 	
-	public static final String OUTPUT_DIR = "/dev/hack2018/output";
+	public static final String OUTPUT_DIR = "/opt/hack2018/output";
 
 	private final JourneyClientHelper journeyClientHelper;
 	private final QueryVersionHelper versionHelper;
@@ -70,12 +71,17 @@ public class SalesDataReader extends CSVFileReader<SalesData>{
 
 			FareComponentResponse response = journeyClientHelper.getJourneys(query);
 			
-			transformResponse.transform(data, response, OUTPUT_DIR + "/" + origin + "-" + destination + "-" + lineNumber++ +  ".csv");
+			transformResponse.transform(data, response, OUTPUT_DIR + "/" + origin + "-" + destination + "-" + lineNumber++ +  ".csv", this::containsAirFrance);
 			
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		return null;
+	}
+	
+	public boolean containsAirFrance(Itinerary itinerary, Flights flights) {
+		//return flights.containsCarrier("AF") >= 0;
+		return true;
 	}
 
 }

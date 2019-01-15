@@ -9,8 +9,9 @@ import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.BiPredicate;
 
-import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang3.ArrayUtils;
 
 import com.google.common.collect.Range;
 
@@ -29,6 +30,11 @@ import net.atpco.journey.schedule.FareComponentResponse;
 @Slf4j
 public class TransformResponse {
 
+	enum Alliance {
+		SKYTEAM,
+		ONEWORLD
+	};
+	
 	public static String[] SKYTEAM_ALLIANCE_CARRIERS = {
 			"SU", "AR", "AM", "UX", "AF", 
 			"AZ", "CI", "MU", "CZ", "OK",
@@ -36,8 +42,16 @@ public class TransformResponse {
 			"ME", "SV", "RO" ,"VN", "MF"
 	};
 
+	public static String[] ONEWORLD_ALLIANCE_CARRIERS = {
+			"AA", "BA", "CX",
+			"AY", "IB", "JL",
+			"JJ", "LA", "MH", "QF",
+			"QR", "RJ", "S7",
+			"UL"
+	};
+
 	@SneakyThrows
-	public void transform(SalesData salesData, FareComponentResponse response, String outFileName) throws IOException {
+	public void transform(SalesData salesData, FareComponentResponse response, String outFileName, BiPredicate<Itinerary, Flights> exportFilter) throws IOException {
 		try (PrintStream os = new PrintStream(Files.newOutputStream(Paths.get(outFileName)), true)) {
 			os.println("DPTR_TM1,DPTR_TM2,DPTR_TM3,DPTR_TM4,DPTR_TM5,DPTR_TM6,DPTR_TM7,DPTR_TM8," +
 					"ARRV_TM1,ARRV_TM2,ARRV_TM3,ARRV_TM4,ARRV_TM5,ARRV_TM6,ARRV_TM7,ARRV_TM8," +
@@ -55,10 +69,10 @@ public class TransformResponse {
 					Range<Integer> range = jf.getRange(itinerary);
 					for (int index = range.lowerEndpoint(); index < range.upperEndpoint(); index++) {
 						Flights flights = jf.get(index);
-						//						if (flights.containsCarrier("AF") >= 0) {
-						// include this one
-						exportFlights(itinerary, flights, os, salesData);
-						//						}
+						if (flights.isSameCarrier("IB")) {
+							// include this one
+							exportFlights(itinerary, flights, os, salesData);
+						}
 					}
 				}
 			}
@@ -101,7 +115,11 @@ public class TransformResponse {
 		sb.append(getDepartureDayOfWeek(itinerary) + ",");
 		sb.append(getArrivalDayOfWeek(itinerary) + ",");
 		sb.append(getFlightChangeType(flights) + ",");
-		sb.append(isMatch(itinerary, flights, salesData)? "TRUE" : "FALSE");
+		if (salesData != null) {
+			sb.append(isMatch(itinerary, flights, salesData)? "TRUE" : "FALSE");
+		} else {
+			sb.append("FALSE");
+		}
 
 		os.println(sb.toString());
 	}
@@ -113,22 +131,19 @@ public class TransformResponse {
 
 		if (!Arrays.equals(flightPath, salesDataFlightPath)) {
 			
-		//	log.info("In isMatch Failed on getflightPath() salesdata : {} , itinearydata: {}", salesDataFlightPath, flightPath); 
 			return false;
 		}
 		String[] carrierCodes = flights.getCarrierCodes();
 		String[] marketingCarriers = salesData.getMarketingCarriers();
 		
 		if (!Arrays.equals(carrierCodes, marketingCarriers)) {
-		//	log.info("In isMatch Failed on getMarketingCarriers() salesdata : {} , itinearydata: {}", marketingCarriers, carrierCodes); 
 			return false;
 		}
 		if (!Arrays.equals(getFlightNumbers(flights), salesData.getMarketingFlightNumbers())) {
-			//log.info("In isMatch Failed on getFlightNumbers() salesdata : {} , itinearydata: {}", salesData.getMarketingFlightNumbers(), getFlightNumbers(flights)); 
 			return false;
 		}
 
-		log.info("Success!!!!!");
+		log.info("Match Found!");
 		return true;
 	}
 
@@ -152,11 +167,26 @@ public class TransformResponse {
 	}
 
 	private String getFlightChangeType(Flights flights) {
+		Alliance alliance = null;
 		String changeType = "ONLINE";
 		for (Flight flight : flights) {
-			String mktCarrier = flight.getCarrier(); 
+			String mktCarrier = flight.getCarrier();
 			if (ArrayUtils.contains(SKYTEAM_ALLIANCE_CARRIERS, mktCarrier)) {
-				changeType = "ALLIANCE";
+				if (alliance == null) {
+					changeType = "ALLIANCE";
+				} else if (alliance != Alliance.SKYTEAM) {
+					changeType = "INTERLINE";
+					break;
+				}
+				alliance = Alliance.SKYTEAM;
+			} else if (ArrayUtils.contains(ONEWORLD_ALLIANCE_CARRIERS, mktCarrier)) {
+				if (alliance == null) {
+					changeType = "ALLIANCE";
+				} else if (alliance != Alliance.ONEWORLD) {
+					changeType = "INTERLINE";
+					break;
+				}
+				alliance = Alliance.ONEWORLD;
 			} else {
 				changeType = "INTERLINE";
 				break;

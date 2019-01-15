@@ -1,49 +1,178 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<?xml version="1.0"?>
+<project
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+	xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<modelVersion>4.0.0</modelVersion>
-
-	<groupId>atpco.hack</groupId>
-	<artifactId>journeytransformer</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
-	<packaging>jar</packaging>
-
 	<parent>
-		<groupId>org.springframework.boot</groupId>
-		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>2.1.0.RELEASE</version>
+		<groupId>net.atpco.distribution</groupId>
+		<artifactId>journey</artifactId>
+		<version>0.0.1-SNAPSHOT</version>
 	</parent>
-	<dependencies>
+
+	<artifactId>journeytransformer</artifactId>
+	<name>journeytransformer</name>
+    <packaging>jar</packaging>
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+	</properties>
 	
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<!-- Import dependency management from Spring Boot -->
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-dependencies</artifactId>
+				<version>${spring.boot.version}</version>
+				<scope>import</scope>
+				<type>pom</type>
+			</dependency>
+ 			<dependency>
+				<groupId>org.springframework.cloud</groupId>
+				<artifactId>spring-cloud-dependencies</artifactId>
+				<version>${spring.cloud.dependencies.version}</version>
+				<scope>import</scope>
+				<type>pom</type>
+			</dependency>
+		
+	 		<dependency>
+		        <groupId>org.springframework.cloud</groupId>
+		        <artifactId>spring-cloud-starter-config</artifactId>
+ 				<version>${spring.cloud.version}</version>
+		    </dependency>
+		    <dependency>
+		        <groupId>org.springframework.cloud</groupId>
+		        <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
+ 				<version>${spring.cloud.version}</version>
+		    </dependency>		
+<!-- <dependency>
+	<groupId>org.springframework.boot</groupId>
+	<artifactId>spring-boot-properties-migrator</artifactId>
+	<scope>runtime</scope>
+</dependency>
+ -->		</dependencies>
+	</dependencyManagement>
+  
+  <repositories>
+		<repository>
+	        <id>spring-milestones</id>
+	        <name>Spring Milestones</name>
+	        <url>https://repo.spring.io/libs-milestone</url>
+	        <snapshots>
+	            <enabled>false</enabled>
+	        </snapshots>		
+		</repository>
+	</repositories>
+
+	<dependencies>
+	     <!-- Spring Cloud:START -->
+	    <dependency>
+	        <groupId>org.springframework.cloud</groupId>
+	        <artifactId>spring-cloud-starter-config</artifactId>
+	    </dependency>
+	    <dependency>
+	        <groupId>org.springframework.cloud</groupId>
+	        <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
+	    </dependency>		
+    	<!-- Spring Cloud:END -->
+    
+  		<dependency>
+        	<groupId>org.springframework.boot</groupId>
+        	<artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
 		<dependency>
-			<groupId>net.atpco.distribution</groupId>
-			<artifactId>engine-common</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>net.atpco.distribution</groupId>
-			<artifactId>journey-client</artifactId>
-			<version>${project.version}</version>
-		</dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+		<!-- Modules -->
 		<dependency>
 			<groupId>net.atpco.distribution</groupId>
 			<artifactId>engine-serializers</artifactId>
-			<version>${project.version}</version>
-			<exclusions>
-				<exclusion>
-					<artifactId>log4j</artifactId>
-					<groupId>log4j</groupId>
-				</exclusion>
-			</exclusions>
+			<version>${project.parent.version}</version>
 		</dependency>
-		<dependency>
+		<!-- ATPCO:END -->
 
-			<groupId>org.projectlombok</groupId>
-			<artifactId>lombok</artifactId>
-			<optional>true</optional>
+		<dependency>
+			<groupId>ch.qos.logback</groupId>
+			<artifactId>logback-classic</artifactId>
+			<scope>compile</scope>
 		</dependency>
 		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-web</artifactId>
+			<groupId>ch.qos.logback</groupId>
+			<artifactId>logback-core</artifactId>
+			<scope>compile</scope>
+		</dependency>
+		<dependency>
+			<groupId>net.atpco.distribution</groupId>
+			<artifactId>journey-server</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>net.atpco.distribution</groupId>
+			<artifactId>neo4j-common</artifactId>
+			<version>${project.parent.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>net.atpco.distribution</groupId>
+			<artifactId>neo4j-common</artifactId>
+			<version>${project.parent.version}</version>
+			<type>test-jar</type>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>net.atpco.distribution</groupId>
+			<artifactId>engine-common</artifactId>
+			<version>${project.parent.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>net.atpco.distribution</groupId>
+			<artifactId>crawler-gc</artifactId>
+			<version>${project.parent.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>net.atpco.distribution</groupId>
+			<artifactId>engine-common</artifactId>
+			<version>${project.parent.version}</version>
+			<type>test-jar</type>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.neo4j</groupId>
+			<artifactId>neo4j-enterprise</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.neo4j</groupId>
+			<artifactId>neo4j-kernel</artifactId>
+			<type>test-jar</type>
+			<scope>test</scope>
+		</dependency>
+  	    <dependency>
+			<groupId>org.neo4j</groupId>
+			<artifactId>neo4j-io</artifactId>
+			<type>test-jar</type>
+			<scope>provided</scope>
+	    </dependency>	
+
+		<!--json provided dependencies -->
+		<dependency>
+			<groupId>org.json</groupId>
+			<artifactId>json</artifactId>
+			<version>20131018</version>
+		</dependency>
+		
+		<!-- Swagger config -->
+		<dependency>
+			<groupId>io.springfox</groupId>
+			<artifactId>springfox-swagger2</artifactId>
+			<version>2.6.1</version>
+		</dependency>
+		<dependency>
+			<groupId>io.springfox</groupId>
+			<artifactId>springfox-swagger-ui</artifactId>
+			<version>2.6.1</version>
+		</dependency>
+		<dependency>
+			<groupId>net.atpco.distribution</groupId>
+			<artifactId>web-common</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
 		</dependency>
 	</dependencies>
 	
@@ -52,6 +181,7 @@
 	        <plugin>
 	            <groupId>org.springframework.boot</groupId>
 	            <artifactId>spring-boot-maven-plugin</artifactId>
+            	<version>${spring.boot.version}</version>
  				<executions>
 					<execution>
 						<goals>
@@ -64,7 +194,25 @@
   		            <excludeGroupIds>org.joda,org.projectlombok,com.ibm.mq,org.powermock,org.easymock,junit,com.ibm.db2,io.vertx,org.eclipse.jetty</excludeGroupIds>
 		        </configuration>				
  	        </plugin>
- 	        
+ 	        <plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-assembly-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>zip-journey-engine</id>
+						<phase>package</phase>
+						<goals>
+							<goal>single</goal>
+						</goals>
+						<configuration>
+							<descriptor>src/assembly/bin.xml</descriptor>
+							<finalName>${project.name}</finalName>
+							<attach>false</attach>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
 		</plugins>
-	</build> 
+	</build>  
 </project>
+

@@ -4,6 +4,7 @@ import java.nio.file.Paths;
 
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
@@ -21,6 +22,12 @@ public class TransformerController {
 
 	@RequestMapping("/js")
 	public void transformSalesData() {
+
+		dataReader.read(Paths.get("/hack/insideTrack/data/itinerary.csv"));
+	}
+
+	@RequestMapping("/generate")
+	public void generateItineraries() {
 
 		dataReader.read(Paths.get("/hack/insideTrack/data/itinerary.csv"));
 	}
