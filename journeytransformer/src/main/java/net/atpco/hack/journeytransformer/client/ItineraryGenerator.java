@@ -1,5 +1,6 @@
 package net.atpco.hack.journeytransformer.client;
 
+import java.io.File;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -31,13 +32,21 @@ public class ItineraryGenerator {
 	
 	private final TransformResponse transformResponse = new TransformResponse();
 	
+//	final String origin = "IAD";
+//	final String destination = "LHR";
+//	final String carrier = "BA";
+//	final LocalDate beginningDate = LocalDate.of(2019, 1, 21);
+//	final int numWeeks = 2;
+//	
+	final String origin = "LAX";
+	final String destination = "BCN";
+	final String carrier = "IB";
+	final LocalDate beginningDate = LocalDate.of(2019, 1, 21);
+	final int numWeeks = 45;
+	
 	public void generate() throws IOException {
 	
-		final String origin = "LAX";
-		final String destination = "BCN";
-		final LocalDate beginningDate = LocalDate.of(2019, 1, 21);
-		
-		for (int i = 0; i < 45; i++) {
+		for (int i = 0; i < numWeeks; i++) {
 			
 			LocalDate requestDate = beginningDate.plusDays(i*7);
 			DateRange travelStartDateRange = new LocalDateRange(requestDate, requestDate).toDateRange();
@@ -48,11 +57,12 @@ public class ItineraryGenerator {
 		
 			FareComponentResponse response = journeyClientHelper.getJourneys(query);
 			
+			new File(OUTPUT_DIR).mkdirs();
 			transformResponse.transform(null, response, OUTPUT_DIR + "/" + origin + "-" + destination + "-" +  DATE_FORMATTER.format(requestDate) +  ".csv", this::filter);
 		}
 	}
 	
 	public boolean filter(Itinerary itinerary, Flights flights) {
-		return flights.isSameCarrier("IB");
+		return flights.isSameCarrier(carrier);
 	}
 }

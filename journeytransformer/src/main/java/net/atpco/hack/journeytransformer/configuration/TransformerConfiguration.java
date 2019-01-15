@@ -17,6 +17,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import net.atpco.engine.common.cache.QueryCacheConfiguration;
 import net.atpco.engine.common.cache.QueryVersionConfiguration;
 import net.atpco.engine.common.configuration.LocationEngineConfiguration;
+import net.atpco.hack.journeytransformer.client.ItineraryGenerator;
 import net.atpco.hack.journeytransformer.client.SalesDataReader;
 import net.atpco.journey.client.JourneyClientHelper;
 import net.atpco.journey.configuration.JourneyClientCommonConfiguration;
@@ -51,6 +52,11 @@ public class TransformerConfiguration {
 	@Bean
 	public SalesDataReader salesDataReader(){
 		return new SalesDataReader(null, journeyClientHelper, versionHelper, buildItineraryBuddy(-1, -1, -1, -1, -1, -1, null));
+	}
+	
+	@Bean
+	public ItineraryGenerator itineraryGenerator(){
+		return new ItineraryGenerator(journeyClientHelper, versionHelper,  buildItineraryBuddy(-1, -1, -1, -1, -1, -1, null));
 	}
 	
 	@Bean
