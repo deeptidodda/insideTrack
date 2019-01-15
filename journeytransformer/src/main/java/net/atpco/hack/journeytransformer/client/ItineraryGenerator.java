@@ -4,8 +4,12 @@ import java.io.File;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.function.BiPredicate;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import net.atpco.ash.vo.DateRange;
 import net.atpco.ash.vo.Flights;
 import net.atpco.ash.vo.LocalDateRange;
@@ -19,6 +23,7 @@ import net.atpco.journey.schedule.FareComponentResponse;
 import net.atpco.pricing.version.QueryVersionHelper;
 import net.atpco.version.common.VersionQuery;
 
+@Slf4j
 @RequiredArgsConstructor
 public class ItineraryGenerator {
 
@@ -32,37 +37,30 @@ public class ItineraryGenerator {
 	
 	private final TransformResponse transformResponse = new TransformResponse();
 	
-//	final String origin = "IAD";
-//	final String destination = "LHR";
-//	final String carrier = "BA";
-//	final LocalDate beginningDate = LocalDate.of(2019, 1, 21);
-//	final int numWeeks = 2;
-//	
-	final String origin = "LAX";
-	final String destination = "BCN";
-	final String carrier = "IB";
-	final LocalDate beginningDate = LocalDate.of(2019, 1, 21);
-	final int numWeeks = 45;
+	public void generate(ItineraryGeneratorRequest req) throws IOException {
 	
-	public void generate() throws IOException {
-	
-		for (int i = 0; i < numWeeks; i++) {
+		for (int i = 0; i < req.getNumIterations(); i++) {
 			
-			LocalDate requestDate = beginningDate.plusDays(i*7);
+			LocalDate requestDate = req.getBeginningDate().plus(i*req.getIncrementUnit(), req.getUnits());
 			DateRange travelStartDateRange = new LocalDateRange(requestDate, requestDate).toDateRange();
 		
 			Long version = versionHelper.getLiveVersion();
 			VersionQuery.set(version);
-			JourneyQuery query = new JourneyQuery(origin, destination, travelStartDateRange, null, "OW", true, buddy, CityAirportFCType.AIRPORT, version);
+			
+			JourneyQuery query = new JourneyQuery(req.getOrigin(), req.getDestination(), travelStartDateRange, null, "OW", true, buddy, CityAirportFCType.AIRPORT, version);
+			log.info("Sending journey query {}", new ObjectMapper().writeValueAsString(query));
 		
 			FareComponentResponse response = journeyClientHelper.getJourneys(query);
+			log.info("Received journey response {}", new ObjectMapper().writeValueAsString(response));
 			
 			new File(OUTPUT_DIR).mkdirs();
-			transformResponse.transform(null, response, OUTPUT_DIR + "/" + origin + "-" + destination + "-" +  DATE_FORMATTER.format(requestDate) +  ".csv", this::filter);
+			final String outFileName = OUTPUT_DIR + "/" + req.getOrigin() + "-" + req.getDestination() + "-" +  DATE_FORMATTER.format(requestDate) +  ".csv";
+			log.info("Writing response to {}", outFileName);
+			transformResponse.transform(null, response, outFileName, buildFilter(req.getCarrier()));
 		}
 	}
 	
-	public boolean filter(Itinerary itinerary, Flights flights) {
-		return flights.isSameCarrier(carrier);
+	public BiPredicate<Itinerary, Flights> buildFilter(String carrier) {
+		return (itinerary, flights) -> flights.isSameCarrier(carrier);
 	}
 }
