@@ -1,0 +1,61 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Fri Nov  2 16:47:05 2018
+
+@author: atp1ksb
+"""
+
+
+
+# Importing the libraries
+import pandas as pd
+import glob
+
+
+# nrows=1000,
+#dataset = pd.read_csv('C:\\Hackathon\\T090418.AF.CSV' , nrows=5, 
+#                      usecols=['ORG_CTY1', 'ORG_CTY2', 'ORG_CTY3' ,'ORG_CTY4', 'ORG_CTY4' ,'ORG_CTY5' ,'ORG_CTY6', 'ORG_CTY7',
+#                               'DST_CTY1','DST_CTY2','DST_CTY3','DST_CTY4','DST_CTY5','DST_CTY6','DST_CTY7'])
+#airportData.dropna(subset=['iata_code'], inplace=True)
+ #neo4jDriver = GraphDatabase.driver('http://rndrpdb3:7301', auth=('', ''))
+l = [pd.read_csv(filename , memory_map =True,usecols=['ORAC1', 'ORAC2', 'ORAC3' ,'ORAC4', 'ORAC4' ,'ORAC5' ,'ORAC6', 'ORAC7',
+                               'DSTC1','DSTC2','DSTC3','DSTC4','DSTC5','DSTC6','DSTC7']) for filename in glob.glob("//mnt//non-ssd//AirFrance//*.CSV")]
+dataset = pd.concat(l, axis=0)
+
+#dataset = pd.read_csv('C:\\Hackathon\\T090418.AF.CSV' , memory_map =True,
+#                      usecols=['ORAC1', 'ORAC2', 'ORAC3' ,'ORAC4', 'ORAC4' ,'ORAC5' ,'ORAC6', 'ORAC7',
+#                               'DSTC1','DSTC2','DSTC3','DSTC4','DSTC5','DSTC6','DSTC7'])
+#NL_FR 751 / US_FR 1304 / FR 730
+airportData = pd.read_csv('//mnt//non-ssd//hackathon//airports.csv', memory_map =True, usecols=['iso_country' , 'iata_code'])
+airportData = airportData.loc[airportData['iso_country'].isin(['FR','US'])]
+
+fr_us_only = dataset[dataset['ORAC1'].isin(airportData['iata_code'])]
+fr_us_only = fr_us_only[fr_us_only['ORAC2'].isin(airportData['iata_code'])]
+fr_us_only = fr_us_only[fr_us_only['ORAC3'].isin(airportData['iata_code'])]
+fr_us_only = dataset[dataset['ORAC4'].isin(airportData['iata_code'])]
+fr_us_only = fr_us_only[fr_us_only['ORAC5'].isin(airportData['iata_code'])]
+fr_us_only = fr_us_only[fr_us_only['ORAC6'].isin(airportData['iata_code'])]
+fr_us_only = fr_us_only[fr_us_only['ORAC7'].isin(airportData['iata_code'])]
+
+fr_us_only = fr_us_only[fr_us_only['DSTC1'].isin(airportData['iata_code'])]
+fr_us_only = fr_us_only[fr_us_only['DSTC2'].isin(airportData['iata_code'])]
+fr_us_only = fr_us_only[fr_us_only['DSTC3'].isin(airportData['iata_code'])]
+fr_us_only = fr_us_only[fr_us_only['DSTC4'].isin(airportData['iata_code'])]
+fr_us_only = fr_us_only[fr_us_only['DSTC5'].isin(airportData['iata_code'])]
+fr_us_only = fr_us_only[fr_us_only['DSTC6'].isin(airportData['iata_code'])]
+fr_us_only = fr_us_only[fr_us_only['DSTC7'].isin(airportData['iata_code'])]
+
+
+fr_us_only.to_csv('//mnt//non-ssd//hackathon//fr_us_only.csv')
+#ORG_ DST_ keep a set of objects containing city and count
+#cityCount ={}
+#for idx, city  in np.ndenumerate(fr_us_only):
+#        #print(idx, ORAC1)
+#        if np.isnan : print(idx)
+            
+        #cityCount[city] = cityCount.get(city, 0) + 1
+#        dataset2 = np.delete(dataset, idx, axis=0)
+
+
+
+
