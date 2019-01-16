@@ -114,7 +114,7 @@ public class TransformResponse {
 		}
 
 		sb.append(itinerary.getNoOfLegs()-1 + ",");
-		sb.append(itinerary.getLastLeg().getFlightDetails().getArrivalMinutesOfDay() + ",");
+		sb.append(itinerary.getLastLeg().getFlightDetails().getArrivalTime().format(TIME_FORMATTER) + ",");
 		sb.append(getDuration(itinerary) + ",");
 		sb.append(getTotalConnectionTime(itinerary) + ",");
 		sb.append(getMaxConnectionTime(itinerary) + ",");
