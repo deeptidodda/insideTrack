@@ -6,6 +6,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.DayOfWeek;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.function.BiPredicate;
@@ -25,6 +26,8 @@ import net.atpco.engine.common.pricing.Journey;
 import net.atpco.journey.schedule.FareComponentResponse;
 
 public class TransformResponse {
+
+	public static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
 
 	enum Alliance {
 		SKYTEAM,
@@ -217,7 +220,7 @@ public class TransformResponse {
 
 	private String getDepartureTime(Itinerary itinerary, int index) {
 		if (index < itinerary.getNoOfLegs()) {
-			return String.valueOf(itinerary.getItineraryLeg(index).getFlightDetails().getDepartureMinutesOfDay());
+			return itinerary.getItineraryLeg(index).getFlightDetails().getDepartureTime().format(TIME_FORMATTER);
 		}
 		return "";
 	}
@@ -233,7 +236,7 @@ public class TransformResponse {
 
 	private String getArrivalTime(Itinerary itinerary, int index) {
 		if (index < itinerary.getNoOfLegs()) {
-			return String.valueOf(itinerary.getItineraryLeg(index).getFlightDetails().getArrivalMinutesOfDay());
+			return itinerary.getItineraryLeg(index).getFlightDetails().getArrivalTime().format(TIME_FORMATTER);
 		}
 		return "";
 	}
