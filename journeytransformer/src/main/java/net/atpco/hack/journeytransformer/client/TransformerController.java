@@ -2,6 +2,8 @@ package net.atpco.hack.journeytransformer.client;
 
 import java.io.IOException;
 import java.nio.file.Paths;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -30,9 +32,14 @@ public class TransformerController {
 	}
 
 	@RequestMapping(value = "/generate", method = { RequestMethod.POST})
-	public void generateItineraries(@RequestBody ItineraryGeneratorRequest request) throws IOException {
+	public Map<String, Object> generateItineraries(@RequestBody ItineraryGeneratorRequest request) throws IOException {
 
-		itineraryGenerator.generate(request);
+		String outputLocation = itineraryGenerator.generate(request);
+		
+		Map<String, Object> retData = new LinkedHashMap<>();
+		retData.put("status", "SUCCESS");
+		retData.put("message", "Please find generated data at " + outputLocation);
+		return retData;
 	}
 
 }

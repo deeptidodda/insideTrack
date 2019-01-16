@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.UUID;
 import java.util.function.BiPredicate;
 
 import org.apache.commons.lang3.ArrayUtils;
@@ -32,7 +33,7 @@ public class ItineraryGenerator {
 
 	private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMdd");
 
-	public static final String OUTPUT_DIR = "/opt/atpco/hack2018/controlled1";
+	public static final String OUTPUT_DIR = "/opt/atpco/hack2018/controlled";
 
 	private final JourneyClientHelper journeyClientHelper;
 	private final QueryVersionHelper versionHelper;
@@ -40,7 +41,9 @@ public class ItineraryGenerator {
 	
 	private final TransformResponse transformResponse = new TransformResponse();
 	
-	public void generate(ItineraryGeneratorRequest req) throws IOException {
+	public String generate(ItineraryGeneratorRequest req) throws IOException {
+		
+		String requestDir = OUTPUT_DIR + "/" + req.getOrigin() + "-" + req.getDestination() + UUID.randomUUID().toString();
 	
 		for (int i = 0; i < req.getNumIterations(); i++) {
 			
@@ -56,11 +59,12 @@ public class ItineraryGenerator {
 			FareComponentResponse response = journeyClientHelper.getJourneys(query);
 			log.info("Successfully received journey response with {} journeys", response.getJourneys() != null? response.getJourneys().size():0);
 			
-			new File(OUTPUT_DIR).mkdirs();
-			final String outFileName = OUTPUT_DIR + "/" + req.getOrigin() + "-" + req.getDestination() + "-" +  DATE_FORMATTER.format(requestDate) +  ".csv";
+			new File(requestDir).mkdirs();
+			final String outFileName = requestDir + "/" + req.getOrigin() + "-" + req.getDestination() + "-" +  DATE_FORMATTER.format(requestDate) +  ".csv";
 			log.info("Writing response to {}", outFileName);
 			transformResponse.transform(response, outFileName, buildFilter(req.getCarriers()), (it,fl)->false);
 		}
+		return requestDir;
 	}
 	
 	public BiPredicate<Itinerary, Flights> buildFilter(String[] carriers) {
