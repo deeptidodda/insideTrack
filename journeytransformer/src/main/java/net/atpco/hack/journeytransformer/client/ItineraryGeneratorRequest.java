@@ -12,6 +12,12 @@ import lombok.Data;
 public class ItineraryGeneratorRequest {
 	private String origin;
 	private String destination;
+	
+	
+	/** 
+	 * If specified, only itineraries containing just the specified marketing carriers in the list are included. 
+	 * If this list contains an '*' as one of the carrier names, then only itineraries containing at least one of the specified carriers is included.
+	 */
 	private String[] carriers;
 	
 	@JsonDeserialize(using=LocalDateDeserializer.class)

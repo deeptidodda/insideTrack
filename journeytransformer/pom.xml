@@ -16,11 +16,6 @@
 	
 		<dependency>
 			<groupId>net.atpco.distribution</groupId>
-			<artifactId>engine-common</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>net.atpco.distribution</groupId>
 			<artifactId>journey-client</artifactId>
 			<version>${project.version}</version>
 		</dependency>

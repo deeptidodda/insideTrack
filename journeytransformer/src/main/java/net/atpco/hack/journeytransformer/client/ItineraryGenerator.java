@@ -64,11 +64,23 @@ public class ItineraryGenerator {
 	}
 	
 	public BiPredicate<Itinerary, Flights> buildFilter(String[] carriers) {
-		if (carriers == null || carriers.length == 0) {
+		if (carriers == null || carriers.length == 0
+				|| (carriers.length == 1 && "*".equals(carriers[0]))) {
 			return (itinerary, flights) -> true;
-		} else if (carriers.length == 1) {
-			return (itinerary, flights) -> flights.isSameCarrier(carriers[0]);
+		} 
+		
+		if (ArrayUtils.contains(carriers, "*")) {
+			// at least one match is required
+			return (itinerary, flights) -> {
+				for (Flight flight: flights) {
+					if (ArrayUtils.contains(carriers, flight.getCarrier()))
+						return true;
+				}
+				return false;
+			};
+			
 		} else {
+			// the carrier for all flights must be found in the carriers array
 			return (itinerary, flights) -> {
 				for (Flight flight: flights) {
 					if (!ArrayUtils.contains(carriers, flight.getCarrier()))

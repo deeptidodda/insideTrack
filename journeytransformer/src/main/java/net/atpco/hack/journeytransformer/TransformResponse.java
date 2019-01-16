@@ -15,7 +15,6 @@ import org.apache.commons.lang3.ArrayUtils;
 import com.google.common.collect.Range;
 
 import lombok.SneakyThrows;
-import lombok.extern.slf4j.Slf4j;
 import net.atpco.ash.vo.Defaults;
 import net.atpco.ash.vo.Flight;
 import net.atpco.ash.vo.Flights;
@@ -25,7 +24,6 @@ import net.atpco.engine.common.itinerary.JourneyFlights;
 import net.atpco.engine.common.pricing.Journey;
 import net.atpco.journey.schedule.FareComponentResponse;
 
-@Slf4j
 public class TransformResponse {
 
 	enum Alliance {
@@ -126,33 +124,29 @@ public class TransformResponse {
 	}
 
 	private String getFlightChangeType(Flights flights) {
+		if (flights.isSameCarrier(flights.get(0).getCarrier())) {
+			return "ONLINE";
+		}
+
 		Alliance alliance = null;
-		String changeType = "ONLINE";
 		for (Flight flight : flights) {
 			String mktCarrier = flight.getCarrier();
 			if (ArrayUtils.contains(SKYTEAM_ALLIANCE_CARRIERS, mktCarrier)) {
-				if (alliance == null) {
-					changeType = "ALLIANCE";
-				} else if (alliance != Alliance.SKYTEAM) {
-					changeType = "INTERLINE";
-					break;
+				if (alliance != null && alliance != Alliance.SKYTEAM) {
+					return "INTERLINE";
 				}
 				alliance = Alliance.SKYTEAM;
 			} else if (ArrayUtils.contains(ONEWORLD_ALLIANCE_CARRIERS, mktCarrier)) {
-				if (alliance == null) {
-					changeType = "ALLIANCE";
-				} else if (alliance != Alliance.ONEWORLD) {
-					changeType = "INTERLINE";
-					break;
+				if (alliance != null && alliance != Alliance.ONEWORLD) {
+					return "INTERLINE";
 				}
 				alliance = Alliance.ONEWORLD;
 			} else {
-				changeType = "INTERLINE";
-				break;
+				return "INTERLINE";
 			}
 		}
 
-		return changeType;
+		return "ALLIANCE";
 	}
 
 	private String getDepartureDayOfWeek(Itinerary itinerary) {
@@ -230,8 +224,8 @@ public class TransformResponse {
 
 	private String getDepartureDate(Itinerary itinerary, int index) {
 		if (index < itinerary.getNoOfLegs()) {
-			if(itinerary.getItineraryLeg(index).getFlightDetails().getDateRange() != null) {
-				return String.valueOf(itinerary.getItineraryLeg(index).getFlightDetails().getDateRange().getStartLocalDate());
+			if(itinerary.getItineraryLeg(index).getDepartureRange() != null) {
+				return String.valueOf(itinerary.getItineraryLeg(index).getDepartureRange().getStartLocalDate());
 			}
 		}
 		return "";
