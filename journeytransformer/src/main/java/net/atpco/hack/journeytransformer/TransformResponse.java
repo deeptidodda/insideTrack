@@ -115,9 +115,9 @@ public class TransformResponse {
 
 		sb.append(itinerary.getNoOfLegs()-1 + ",");
 		sb.append(itinerary.getLastLeg().getFlightDetails().getArrivalTime().format(TIME_FORMATTER) + ",");
-		sb.append(getDuration(itinerary) + ",");
-		sb.append(getTotalConnectionTime(itinerary) + ",");
-		sb.append(getMaxConnectionTime(itinerary) + ",");
+		sb.append(getDurationMinutes(itinerary) + ",");
+		sb.append(getTotalConnectionTimeMinutes(itinerary) + ",");
+		sb.append(getMaxConnectionTimeMinutes(itinerary) + ",");
 		sb.append(getDepartureDayOfWeek(itinerary) + ",");
 		sb.append(getArrivalDayOfWeek(itinerary) + ",");
 		sb.append(getFlightChangeType(flights) + ",");
@@ -162,27 +162,20 @@ public class TransformResponse {
 		return String.valueOf(dayOfWeek.getValue());
 	}
 
-	private String getTotalConnectionTime(Itinerary itinerary) {
+	private String getTotalConnectionTimeMinutes(Itinerary itinerary) {
 		long connectionTimeMinutes = 0;
-		for (int index = 1; index < itinerary.getNoOfLegs(); index++) {
-			ItineraryLeg prevLeg = itinerary.getItineraryLeg(index-1);
-			LocalDateTime previousArrival = LocalDateTime.of(prevLeg.getArrivesDate().toInstant().atZone(Defaults.ZONE_ID).toLocalDate(), prevLeg.getFlightDetails().getArrivalTime());
-			ItineraryLeg currLeg = itinerary.getItineraryLeg(index);
-			LocalDateTime departure = LocalDateTime.of(currLeg.getDepartureRange().toLocalDateRange().getStartLocalDate(), currLeg.getFlightDetails().getDepartureTime());
-			connectionTimeMinutes += ChronoUnit.MINUTES.between(previousArrival,  departure);
+		for (int index = 0; index < itinerary.getNoOfLegs()-1; index++) {
+			long connectionTime = calcConnectTimeMinutes(itinerary, index);
+			connectionTimeMinutes += connectionTime;
 		}
 
 		return String.valueOf(connectionTimeMinutes);
 	}
 
-	private String getMaxConnectionTime(Itinerary itinerary) {
+	private String getMaxConnectionTimeMinutes(Itinerary itinerary) {
 		long maxConnectionTimeMinutes = 0;
-		for (int index = 1; index < itinerary.getNoOfLegs(); index++) {
-			ItineraryLeg prevLeg = itinerary.getItineraryLeg(index-1);
-			LocalDateTime previousArrival = LocalDateTime.of(prevLeg.getArrivesDate().toInstant().atZone(Defaults.ZONE_ID).toLocalDate(), prevLeg.getFlightDetails().getArrivalTime());
-			ItineraryLeg currLeg = itinerary.getItineraryLeg(index);
-			LocalDateTime departure = LocalDateTime.of(currLeg.getDepartureRange().toLocalDateRange().getStartLocalDate(), currLeg.getFlightDetails().getDepartureTime());
-			long connectionTimeMinutes = ChronoUnit.MINUTES.between(previousArrival,  departure);
+		for (int index = 0; index < itinerary.getNoOfLegs()-1; index++) {
+			long connectionTimeMinutes = calcConnectTimeMinutes(itinerary, index);
 			if (connectionTimeMinutes > maxConnectionTimeMinutes) {
 				maxConnectionTimeMinutes = connectionTimeMinutes;
 			}
@@ -191,10 +184,24 @@ public class TransformResponse {
 		return String.valueOf(maxConnectionTimeMinutes);
 	}
 
-	private String getDuration(Itinerary itinerary) {
-		LocalDateTime depart = LocalDateTime.of(itinerary.getFirstLeg().getDepartureRange().toLocalDateRange().getStartLocalDate(), itinerary.getFirstLeg().getFlightDetails().getDepartureTime());
-		LocalDateTime arrival = LocalDateTime.of(itinerary.getLastLeg().getArrivesDate().toInstant().atZone(Defaults.ZONE_ID).toLocalDate(), itinerary.getLastLeg().getFlightDetails().getArrivalTime());
-		return String.valueOf(ChronoUnit.MINUTES.between(depart,  arrival));
+	private String getDurationMinutes(Itinerary itinerary) {
+		
+		long totalMinutes = itinerary.getItineraryLeg(0).getFlightDetails().getElapsedLocalTime().toSecondOfDay()/60;
+		for (int index = 1; index < itinerary.getNoOfLegs(); index++) {
+			totalMinutes += calcConnectTimeMinutes(itinerary, index-1);
+			totalMinutes += itinerary.getItineraryLeg(index).getFlightDetails().getElapsedLocalTime().toSecondOfDay()/60;
+		}
+
+		return String.valueOf(totalMinutes);
+	}
+
+	private long calcConnectTimeMinutes(Itinerary itinerary, int connectionIndex) {
+		ItineraryLeg prevLeg = itinerary.getItineraryLeg(connectionIndex);
+		LocalDateTime previousArrival = LocalDateTime.of(prevLeg.getArrivesDate().toInstant().atZone(Defaults.ZONE_ID).toLocalDate(), prevLeg.getFlightDetails().getArrivalTime());
+		ItineraryLeg currLeg = itinerary.getItineraryLeg(connectionIndex+1);
+		LocalDateTime departure = LocalDateTime.of(currLeg.getDepartureRange().toLocalDateRange().getStartLocalDate(), currLeg.getFlightDetails().getDepartureTime());
+		long connectionTime = ChronoUnit.MINUTES.between(previousArrival,  departure);
+		return connectionTime;
 	}
 
 	private String getDepartureAirport(Itinerary itinerary, int index) {
