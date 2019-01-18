@@ -61,9 +61,11 @@ public class TransformResponse {
 					"DSTC1,DSTC2,DSTC3,DSTC4,DSTC5,DSTC6,DSTC7,DSTC8," +
 					"MCXR1,MCXR2,MCXR3,MCXR4,MCXR5,MCXR6,MCXR7,MCXR8," +
 					"NUM_CONNECTIONS,LAST_ARRIVAL,TOTAL_DUR_MIN,TOTAL_CONNECTION_TIME_MIN," +
-					"MAX_CONNECTION_TIME_MINUTES,DEPARTURE_DOW,ARRIVAL_DOW,FLIGHT_CHANGE,INCLUDE");
+					"MAX_CONNECTION_TIME_MINUTES,DEPARTURE_DOW,ARRIVAL_DOW,FLIGHT_CHANGE,RELATIVE_DURATION,INCLUDE");
 
 			List<Journey> journeys = response.getJourneys();
+			long minDuration =  getMinTotalDuration(journeys, exportFilter);
+			
 			for (Journey journey : journeys) {
 				JourneyFlights jf = journey.getJourneyFlights();
 				for (Itinerary itinerary : jf.getItineraires()) {
@@ -72,15 +74,35 @@ public class TransformResponse {
 						Flights flights = jf.get(index);
 						if (exportFilter.test(itinerary, flights)) {
 							// include this one
-							exportFlights(itinerary, flights, os, markInclude);
+							exportFlights(itinerary, flights, os, markInclude, minDuration);
 						}
 					}
 				}
 			}
 		}
 	}
+	
+	private long getMinTotalDuration(List<Journey> journeys, BiPredicate<Itinerary, Flights> exportFilter) {
+		long minDuration = Long.MAX_VALUE;
+		for (Journey journey : journeys) {
+			JourneyFlights jf = journey.getJourneyFlights();
+			for (Itinerary itinerary : jf.getItineraires()) {
+				Range<Integer> range = jf.getRange(itinerary);
+				for (int index = range.lowerEndpoint(); index < range.upperEndpoint(); index++) {
+					Flights flights = jf.get(index);
+					if (exportFilter.test(itinerary, flights)) {
+						long duration = getDurationMinutes(itinerary);
+						if (duration < minDuration) {
+							minDuration = duration;
+						}
+					}
+				}
+			}
+		}
+		return minDuration;
+	}
 
-	private void exportFlights(Itinerary itinerary, Flights flights, PrintStream os, BiPredicate<Itinerary, Flights> markInclude) {
+	private void exportFlights(Itinerary itinerary, Flights flights, PrintStream os, BiPredicate<Itinerary, Flights> markInclude, long minDuration) {
 		StringBuilder sb = new StringBuilder();
 
 		// departure times (8 fields)
@@ -115,12 +137,16 @@ public class TransformResponse {
 
 		sb.append(itinerary.getNoOfLegs()-1 + ",");
 		sb.append(itinerary.getLastLeg().getFlightDetails().getArrivalTime().format(TIME_FORMATTER) + ",");
-		sb.append(getDurationMinutes(itinerary) + ",");
+		final long durationMinutes = getDurationMinutes(itinerary);
+		sb.append(durationMinutes + ",");
 		sb.append(getTotalConnectionTimeMinutes(itinerary) + ",");
 		sb.append(getMaxConnectionTimeMinutes(itinerary) + ",");
 		sb.append(getDepartureDayOfWeek(itinerary) + ",");
 		sb.append(getArrivalDayOfWeek(itinerary) + ",");
 		sb.append(getFlightChangeType(flights) + ",");
+
+		sb.append((int)((double)durationMinutes/(double)minDuration * 100d) + ",");
+		
 		sb.append(markInclude.test(itinerary, flights)? "TRUE" : "FALSE");
 
 		os.println(sb.toString());
@@ -184,7 +210,7 @@ public class TransformResponse {
 		return String.valueOf(maxConnectionTimeMinutes);
 	}
 
-	private String getDurationMinutes(Itinerary itinerary) {
+	private long getDurationMinutes(Itinerary itinerary) {
 		
 		long totalMinutes = itinerary.getItineraryLeg(0).getFlightDetails().getElapsedLocalTime().toSecondOfDay()/60;
 		for (int index = 1; index < itinerary.getNoOfLegs(); index++) {
@@ -192,7 +218,7 @@ public class TransformResponse {
 			totalMinutes += itinerary.getItineraryLeg(index).getFlightDetails().getElapsedLocalTime().toSecondOfDay()/60;
 		}
 
-		return String.valueOf(totalMinutes);
+		return totalMinutes;
 	}
 
 	private long calcConnectTimeMinutes(Itinerary itinerary, int connectionIndex) {
