@@ -57,6 +57,7 @@ public class TransformResponse {
 			os.println("DPTR_TM1,DPTR_TM2,DPTR_TM3,DPTR_TM4,DPTR_TM5,DPTR_TM6,DPTR_TM7,DPTR_TM8," +
 					"ARRV_TM1,ARRV_TM2,ARRV_TM3,ARRV_TM4,ARRV_TM5,ARRV_TM6,ARRV_TM7,ARRV_TM8," +
 					"FLT_DATE1,FLT_DATE2,FLT_DATE3,FLT_DATE4,FLT_DATE5,FLT_DATE6,FLT_DATE7,FLT_DATE8," +
+					"ARRV_DAY1,ARRV_DAY2,ARRV_DAY3,ARRV_DAY4,ARRV_DAY5,ARRV_DAY6,ARRV_DAY7,ARRV_DAY8," +
 					"ORAC1,ORAC2,ORAC3,ORAC4,ORAC5,ORAC6,ORAC7,ORAC8," +
 					"DSTC1,DSTC2,DSTC3,DSTC4,DSTC5,DSTC6,DSTC7,DSTC8," +
 					"MCXR1,MCXR2,MCXR3,MCXR4,MCXR5,MCXR6,MCXR7,MCXR8," +
@@ -118,6 +119,11 @@ public class TransformResponse {
 		// departure dates (8 fields)
 		for (int index = 0; index < 8; index++) {
 			sb.append(getDepartureDate(itinerary, index) + ",");
+		}
+
+		// arrival days (8 fields)
+		for (int index = 0; index < 8; index++) {
+			sb.append(getArrivalDay(itinerary, index) + ",");
 		}
 
 		// origin airport (8 fields)
@@ -270,6 +276,13 @@ public class TransformResponse {
 	private String getArrivalTime(Itinerary itinerary, int index) {
 		if (index < itinerary.getNoOfLegs()) {
 			return itinerary.getItineraryLeg(index).getFlightDetails().getArrivalTime().format(TIME_FORMATTER);
+		}
+		return "";
+	}
+
+	private String getArrivalDay(Itinerary itinerary, int index) {
+		if (index < itinerary.getNoOfLegs()) {
+			return String.valueOf(itinerary.getItineraryLeg(index).getFlightDetails().getArrivalDay().getAmount());
 		}
 		return "";
 	}
