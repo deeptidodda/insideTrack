@@ -57,13 +57,16 @@ public class TransformResponse {
 			os.println("DPTR_TM1,DPTR_TM2,DPTR_TM3,DPTR_TM4,DPTR_TM5,DPTR_TM6,DPTR_TM7,DPTR_TM8," +
 					"ARRV_TM1,ARRV_TM2,ARRV_TM3,ARRV_TM4,ARRV_TM5,ARRV_TM6,ARRV_TM7,ARRV_TM8," +
 					"FLT_DATE1,FLT_DATE2,FLT_DATE3,FLT_DATE4,FLT_DATE5,FLT_DATE6,FLT_DATE7,FLT_DATE8," +
+					"ARRV_DAY1,ARRV_DAY2,ARRV_DAY3,ARRV_DAY4,ARRV_DAY5,ARRV_DAY6,ARRV_DAY7,ARRV_DAY8," +
 					"ORAC1,ORAC2,ORAC3,ORAC4,ORAC5,ORAC6,ORAC7,ORAC8," +
 					"DSTC1,DSTC2,DSTC3,DSTC4,DSTC5,DSTC6,DSTC7,DSTC8," +
 					"MCXR1,MCXR2,MCXR3,MCXR4,MCXR5,MCXR6,MCXR7,MCXR8," +
 					"NUM_CONNECTIONS,LAST_ARRIVAL,TOTAL_DUR_MIN,TOTAL_CONNECTION_TIME_MIN," +
-					"MAX_CONNECTION_TIME_MINUTES,DEPARTURE_DOW,ARRIVAL_DOW,FLIGHT_CHANGE,INCLUDE");
+					"MAX_CONNECTION_TIME_MINUTES,DEPARTURE_DOW,ARRIVAL_DOW,FLIGHT_CHANGE,RELATIVE_DURATION,INCLUDE");
 
 			List<Journey> journeys = response.getJourneys();
+			long minDuration =  getMinTotalDuration(journeys, exportFilter);
+			
 			for (Journey journey : journeys) {
 				JourneyFlights jf = journey.getJourneyFlights();
 				for (Itinerary itinerary : jf.getItineraires()) {
@@ -72,15 +75,35 @@ public class TransformResponse {
 						Flights flights = jf.get(index);
 						if (exportFilter.test(itinerary, flights)) {
 							// include this one
-							exportFlights(itinerary, flights, os, markInclude);
+							exportFlights(itinerary, flights, os, markInclude, minDuration);
 						}
 					}
 				}
 			}
 		}
 	}
+	
+	private long getMinTotalDuration(List<Journey> journeys, BiPredicate<Itinerary, Flights> exportFilter) {
+		long minDuration = Long.MAX_VALUE;
+		for (Journey journey : journeys) {
+			JourneyFlights jf = journey.getJourneyFlights();
+			for (Itinerary itinerary : jf.getItineraires()) {
+				Range<Integer> range = jf.getRange(itinerary);
+				for (int index = range.lowerEndpoint(); index < range.upperEndpoint(); index++) {
+					Flights flights = jf.get(index);
+					if (exportFilter.test(itinerary, flights)) {
+						long duration = getDurationMinutes(itinerary);
+						if (duration < minDuration) {
+							minDuration = duration;
+						}
+					}
+				}
+			}
+		}
+		return minDuration;
+	}
 
-	private void exportFlights(Itinerary itinerary, Flights flights, PrintStream os, BiPredicate<Itinerary, Flights> markInclude) {
+	private void exportFlights(Itinerary itinerary, Flights flights, PrintStream os, BiPredicate<Itinerary, Flights> markInclude, long minDuration) {
 		StringBuilder sb = new StringBuilder();
 
 		// departure times (8 fields)
@@ -96,6 +119,11 @@ public class TransformResponse {
 		// departure dates (8 fields)
 		for (int index = 0; index < 8; index++) {
 			sb.append(getDepartureDate(itinerary, index) + ",");
+		}
+
+		// arrival days (8 fields)
+		for (int index = 0; index < 8; index++) {
+			sb.append(getArrivalDay(itinerary, index) + ",");
 		}
 
 		// origin airport (8 fields)
@@ -115,12 +143,16 @@ public class TransformResponse {
 
 		sb.append(itinerary.getNoOfLegs()-1 + ",");
 		sb.append(itinerary.getLastLeg().getFlightDetails().getArrivalTime().format(TIME_FORMATTER) + ",");
-		sb.append(getDuration(itinerary) + ",");
-		sb.append(getTotalConnectionTime(itinerary) + ",");
-		sb.append(getMaxConnectionTime(itinerary) + ",");
+		final long durationMinutes = getDurationMinutes(itinerary);
+		sb.append(durationMinutes + ",");
+		sb.append(getTotalConnectionTimeMinutes(itinerary) + ",");
+		sb.append(getMaxConnectionTimeMinutes(itinerary) + ",");
 		sb.append(getDepartureDayOfWeek(itinerary) + ",");
 		sb.append(getArrivalDayOfWeek(itinerary) + ",");
 		sb.append(getFlightChangeType(flights) + ",");
+
+		sb.append((int)((double)durationMinutes/(double)minDuration * 100d) + ",");
+		
 		sb.append(markInclude.test(itinerary, flights)? "TRUE" : "FALSE");
 
 		os.println(sb.toString());
@@ -162,27 +194,20 @@ public class TransformResponse {
 		return String.valueOf(dayOfWeek.getValue());
 	}
 
-	private String getTotalConnectionTime(Itinerary itinerary) {
+	private String getTotalConnectionTimeMinutes(Itinerary itinerary) {
 		long connectionTimeMinutes = 0;
-		for (int index = 1; index < itinerary.getNoOfLegs(); index++) {
-			ItineraryLeg prevLeg = itinerary.getItineraryLeg(index-1);
-			LocalDateTime previousArrival = LocalDateTime.of(prevLeg.getArrivesDate().toInstant().atZone(Defaults.ZONE_ID).toLocalDate(), prevLeg.getFlightDetails().getArrivalTime());
-			ItineraryLeg currLeg = itinerary.getItineraryLeg(index);
-			LocalDateTime departure = LocalDateTime.of(currLeg.getDepartureRange().toLocalDateRange().getStartLocalDate(), currLeg.getFlightDetails().getDepartureTime());
-			connectionTimeMinutes += ChronoUnit.MINUTES.between(previousArrival,  departure);
+		for (int index = 0; index < itinerary.getNoOfLegs()-1; index++) {
+			long connectionTime = calcConnectTimeMinutes(itinerary, index);
+			connectionTimeMinutes += connectionTime;
 		}
 
 		return String.valueOf(connectionTimeMinutes);
 	}
 
-	private String getMaxConnectionTime(Itinerary itinerary) {
+	private String getMaxConnectionTimeMinutes(Itinerary itinerary) {
 		long maxConnectionTimeMinutes = 0;
-		for (int index = 1; index < itinerary.getNoOfLegs(); index++) {
-			ItineraryLeg prevLeg = itinerary.getItineraryLeg(index-1);
-			LocalDateTime previousArrival = LocalDateTime.of(prevLeg.getArrivesDate().toInstant().atZone(Defaults.ZONE_ID).toLocalDate(), prevLeg.getFlightDetails().getArrivalTime());
-			ItineraryLeg currLeg = itinerary.getItineraryLeg(index);
-			LocalDateTime departure = LocalDateTime.of(currLeg.getDepartureRange().toLocalDateRange().getStartLocalDate(), currLeg.getFlightDetails().getDepartureTime());
-			long connectionTimeMinutes = ChronoUnit.MINUTES.between(previousArrival,  departure);
+		for (int index = 0; index < itinerary.getNoOfLegs()-1; index++) {
+			long connectionTimeMinutes = calcConnectTimeMinutes(itinerary, index);
 			if (connectionTimeMinutes > maxConnectionTimeMinutes) {
 				maxConnectionTimeMinutes = connectionTimeMinutes;
 			}
@@ -191,10 +216,24 @@ public class TransformResponse {
 		return String.valueOf(maxConnectionTimeMinutes);
 	}
 
-	private String getDuration(Itinerary itinerary) {
-		LocalDateTime depart = LocalDateTime.of(itinerary.getFirstLeg().getDepartureRange().toLocalDateRange().getStartLocalDate(), itinerary.getFirstLeg().getFlightDetails().getDepartureTime());
-		LocalDateTime arrival = LocalDateTime.of(itinerary.getLastLeg().getArrivesDate().toInstant().atZone(Defaults.ZONE_ID).toLocalDate(), itinerary.getLastLeg().getFlightDetails().getArrivalTime());
-		return String.valueOf(ChronoUnit.MINUTES.between(depart,  arrival));
+	private long getDurationMinutes(Itinerary itinerary) {
+		
+		long totalMinutes = itinerary.getItineraryLeg(0).getFlightDetails().getElapsedLocalTime().toSecondOfDay()/60;
+		for (int index = 1; index < itinerary.getNoOfLegs(); index++) {
+			totalMinutes += calcConnectTimeMinutes(itinerary, index-1);
+			totalMinutes += itinerary.getItineraryLeg(index).getFlightDetails().getElapsedLocalTime().toSecondOfDay()/60;
+		}
+
+		return totalMinutes;
+	}
+
+	private long calcConnectTimeMinutes(Itinerary itinerary, int connectionIndex) {
+		ItineraryLeg prevLeg = itinerary.getItineraryLeg(connectionIndex);
+		LocalDateTime previousArrival = LocalDateTime.of(prevLeg.getArrivesDate().toInstant().atZone(Defaults.ZONE_ID).toLocalDate(), prevLeg.getFlightDetails().getArrivalTime());
+		ItineraryLeg currLeg = itinerary.getItineraryLeg(connectionIndex+1);
+		LocalDateTime departure = LocalDateTime.of(currLeg.getDepartureRange().toLocalDateRange().getStartLocalDate(), currLeg.getFlightDetails().getDepartureTime());
+		long connectionTime = ChronoUnit.MINUTES.between(previousArrival,  departure);
+		return connectionTime;
 	}
 
 	private String getDepartureAirport(Itinerary itinerary, int index) {
@@ -237,6 +276,13 @@ public class TransformResponse {
 	private String getArrivalTime(Itinerary itinerary, int index) {
 		if (index < itinerary.getNoOfLegs()) {
 			return itinerary.getItineraryLeg(index).getFlightDetails().getArrivalTime().format(TIME_FORMATTER);
+		}
+		return "";
+	}
+
+	private String getArrivalDay(Itinerary itinerary, int index) {
+		if (index < itinerary.getNoOfLegs()) {
+			return String.valueOf(itinerary.getItineraryLeg(index).getFlightDetails().getArrivalDay().getAmount());
 		}
 		return "";
 	}
