@@ -12,3 +12,6 @@ journeytransformer/target/classes/META-INF/MANIFEST\.MF
 journeytransformer/target/classes/META-INF/maven/journeytransformer/journeytransformer/pom\.properties
 
 journeytransformer/target/classes/META-INF/maven/journeytransformer/journeytransformer/pom\.xml
+/.metadata/
+
+journeytransformer/\.settings/org\.eclipse\.m2e\.core\.prefs

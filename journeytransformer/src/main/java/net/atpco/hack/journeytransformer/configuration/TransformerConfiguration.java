@@ -26,6 +26,7 @@ import net.atpco.journey.request.ItineraryBuddy;
 import net.atpco.journey.request.ItineraryBuddy.BuddyField;
 import net.atpco.journey.request.ItineraryFilterOption;
 import net.atpco.pricing.version.QueryVersionHelper;
+import net.atpco.version.common.VersionQuery;
 
 @Configuration
 @PropertySource(ignoreResourceNotFound = true, value = { "file:/opt/pricing/engine/properties/journey.properties",
@@ -38,6 +39,7 @@ public class TransformerConfiguration {
 	@Autowired JourneyClientHelper journeyClientHelper;
 	@Autowired QueryVersionHelper versionHelper;
 	@Autowired Environment env;
+	@Autowired QueryCacheConfiguration loc;
 	
 	@Bean
 	public MappingJackson2HttpMessageConverter mappingJackson2HttpMessageConverter() {
@@ -50,6 +52,14 @@ public class TransformerConfiguration {
 	
 	@Bean
 	public SalesDataReader salesDataReader(){
+		Long version = versionHelper.getLiveVersion();
+
+		if(version == null) {
+			version = 1L;
+		}
+		VersionQuery.set(version);
+		loc.cacheManager().tpmMileage();
+		loc.cacheManager().mileage();
 		return new SalesDataReader(null, journeyClientHelper, versionHelper, buildItineraryBuddy(-1, -1, -1, -1, -1, -1, null));
 	}
 	
