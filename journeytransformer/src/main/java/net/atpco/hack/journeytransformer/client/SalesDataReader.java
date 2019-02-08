@@ -1,13 +1,19 @@
 package net.atpco.hack.journeytransformer.client;
 
 import java.text.DateFormat;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.function.BiPredicate;
 
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import net.atpco.ash.io.CSVFileReader;
 import net.atpco.ash.vo.DateRange;
+import net.atpco.ash.vo.Flight;
+import net.atpco.ash.vo.Flights;
+import net.atpco.engine.common.itinerary.Itinerary;
+import net.atpco.engine.common.itinerary.ItineraryLeg;
 import net.atpco.hack.journeytransformer.TransformResponse;
 import net.atpco.hack.journeytransformer.vo.SalesData;
 import net.atpco.journey.client.JourneyClientHelper;
@@ -19,9 +25,10 @@ import net.atpco.loader.Loader;
 import net.atpco.pricing.version.QueryVersionHelper;
 import net.atpco.version.common.VersionQuery;
 
+@Slf4j
 public class SalesDataReader extends CSVFileReader<SalesData>{
 	
-	public static final String OUTPUT_DIR = "/dev/hack2018/output";
+	public static final String OUTPUT_DIR = "/opt/hack2018/output";
 
 	private final JourneyClientHelper journeyClientHelper;
 	private final QueryVersionHelper versionHelper;
@@ -70,12 +77,63 @@ public class SalesDataReader extends CSVFileReader<SalesData>{
 
 			FareComponentResponse response = journeyClientHelper.getJourneys(query);
 			
-			transformResponse.transform(data, response, OUTPUT_DIR + "/" + origin + "-" + destination + "-" + lineNumber++ +  ".csv");
+			transformResponse.transform(response, OUTPUT_DIR + "/" + origin + "-" + destination + "-" + lineNumber++ +  ".csv", this::containsAirFrance, generateSalesDataMatchPred(data));
 			
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		return null;
+	}
+	
+	public boolean containsAirFrance(Itinerary itinerary, Flights flights) {
+		//return flights.containsCarrier("AF") >= 0;
+		return true;
+	}
+	
+	public BiPredicate<Itinerary, Flights> generateSalesDataMatchPred(SalesData data) {
+		return (itinerary, flights) -> isSalesDataMatch(itinerary, flights, data);
+	}
+
+	private boolean isSalesDataMatch(Itinerary itinerary, Flights flights, SalesData salesData) {
+		
+		String[] flightPath = getFlightPath(itinerary);
+		String[] salesDataFlightPath = salesData.getFlightPath();
+
+		if (!Arrays.equals(flightPath, salesDataFlightPath)) {
+			
+			return false;
+		}
+		String[] carrierCodes = flights.getCarrierCodes();
+		String[] marketingCarriers = salesData.getMarketingCarriers();
+		
+		if (!Arrays.equals(carrierCodes, marketingCarriers)) {
+			return false;
+		}
+		if (!Arrays.equals(getFlightNumbers(flights), salesData.getMarketingFlightNumbers())) {
+			return false;
+		}
+
+		log.info("Match Found!");
+		return true;
+	}
+
+	private String[] getFlightNumbers(Flights flights) {
+		String[] flightNums = new String[flights.size()];
+		for (int index = 0; index < flights.size(); index++) {
+			Flight flt = flights.get(index);
+			flightNums[index] = String.valueOf(flt.getFlightNo());
+		}
+		return flightNums;
+	}
+
+	private String[] getFlightPath(Itinerary itinerary) {
+		String[] path = new String[itinerary.getNoOfLegs()+1];
+		for (int index = 0; index < itinerary.getNoOfLegs(); index++) {
+			ItineraryLeg leg = itinerary.getItineraryLeg(index);
+			path[index] = leg.getSegment().getOriginAirport();
+		}
+		path[itinerary.getNoOfLegs()] = itinerary.getLastLeg().getSegment().getDestinationAirport();
+		return path;
 	}
 
 }

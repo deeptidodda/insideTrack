@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Created on Fri Nov  2 16:47:05 2018
+Created on Fri Nov  7 16:47:05 2018
 
 @author: atp1ksb
 """
@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import glob
 import time
-from neo4j.v1 import GraphDatabase
+#from neo4j.v1 import GraphDatabase
 from collections import OrderedDict
 from datetime import datetime
 import csv
@@ -30,22 +30,24 @@ l = [pd.read_csv(filename , memory_map =True,
                           'DSTC1','DSTC2','DSTC3','DSTC4','DSTC5','DSTC6','DSTC7','DSTC8',
                           'FLT_DATE1','FLT_DATE2','FLT_DATE3','FLT_DATE4','FLT_DATE5','FLT_DATE6','FLT_DATE7','FLT_DATE8',
                           'DPTR_TM1' , 'DPTR_TM2' , 'DPTR_TM3' ,'DPTR_TM4','DPTR_TM5','DPTR_TM6','DPTR_TM7','DPTR_TM8',
-                          'ARRV_TM1','ARRV_TM2','ARRV_TM3','ARRV_TM4','ARRV_TM5','ARRV_TM6','ARRV_TM7','ARRV_TM8']) 
-    for filename in glob.glob("C:\\Hackathon\\*.CSV")]
+                          'ARRV_TM1','ARRV_TM2','ARRV_TM3','ARRV_TM4','ARRV_TM5','ARRV_TM6','ARRV_TM7','ARRV_TM8',
+                          'MCAR1','MCAR2','MCAR3','MCAR4','MCAR5','MCAR6','MCAR7','MCAR8','MFTN1','MFTN2','MFTN3','MFTN4','MFTN5','MFTN6','MFTN7','MFTN8']) 
+    for filename in glob.glob("//mnt//non-ssd//AirFrance//*.CSV")]
 dataset = pd.concat(l, axis=0)
 
 #dataset = pd.read_csv('C:\\Hackathon\\T090418.AF.CSV' , memory_map =True,
 #                      usecols=['ORAC1', 'ORAC2', 'ORAC3' ,'ORAC4', 'ORAC4' ,'ORAC5' ,'ORAC6', 'ORAC7',
 #                               'DSTC1','DSTC2','DSTC3','DSTC4','DSTC5','DSTC6','DSTC7'])
 #NL_FR 751 / US_FR 1304 / FR 730
-airportData = pd.read_csv('O:\\Documents\\Hackathon\\airports.csv', memory_map =True, usecols=['iso_country' , 'iata_code'])
+airportData = pd.read_csv('//mnt//non-ssd//hackathon//airports.csv', memory_map =True, usecols=['iso_country' , 'iata_code'])
 airportData = airportData.loc[airportData['iso_country'].isin(['FR','US'])]
 
-fr_us_only = dataset[dataset['ORAC1'].isin(airportData['iata_code'])]
-fr_us_only = fr_us_only[fr_us_only['ORAC2'].isin(airportData['iata_code'])]
-fr_us_only = fr_us_only[fr_us_only['ORAC3'].isin(airportData['iata_code'])]
-fr_us_only = fr_us_only[fr_us_only['ORAC4'].isin(airportData['iata_code'])]
-fr_us_only = fr_us_only[fr_us_only['ORAC5'].isin(airportData['iata_code'])]
+fr_us_only=dataset
+#fr_us_only = dataset[dataset['ORAC1'].isin(airportData['iata_code'])]
+#fr_us_only = fr_us_only[fr_us_only['ORAC2'].isin(airportData['iata_code'])]
+#fr_us_only = fr_us_only[fr_us_only['ORAC3'].isin(airportData['iata_code'])]
+#fr_us_only = fr_us_only[fr_us_only['ORAC4'].isin(airportData['iata_code'])]
+""""fr_us_only = fr_us_only[fr_us_only['ORAC5'].isin(airportData['iata_code'])]
 fr_us_only = fr_us_only[fr_us_only['ORAC6'].isin(airportData['iata_code'])]
 fr_us_only = fr_us_only[fr_us_only['ORAC7'].isin(airportData['iata_code'])]
 fr_us_only = fr_us_only[fr_us_only['ORAC8'].isin(airportData['iata_code'])]
@@ -58,7 +60,7 @@ fr_us_only = fr_us_only[fr_us_only['DSTC5'].isin(airportData['iata_code'])]
 fr_us_only = fr_us_only[fr_us_only['DSTC6'].isin(airportData['iata_code'])]
 fr_us_only = fr_us_only[fr_us_only['DSTC7'].isin(airportData['iata_code'])]
 fr_us_only = fr_us_only[fr_us_only['DSTC8'].isin(airportData['iata_code'])]
-
+"""
 
 #ORG_ DST_ keep a set of objects containing city and count
 itenary = {}
@@ -99,8 +101,17 @@ for idx, row  in fr_us_only.iterrows():
     itenary[trip2String] = itenary.get(trip2String, 0) + 1
 
 
-fr_us_only.to_csv('C:\\Hackathon\\output\\fr_us_only.csv')
+fr_us_only.to_csv('//mnt//non-ssd//hackathon//fr_us_only2.csv')
 
-with open('C:\\Hackathon\\output\\itenary.csv','w') as f:
+with open('//mnt//non-ssd//hackathon//itenary2.csv','w') as f:
     w = csv.writer(f)
     w.writerows(itenary.items())
+
+
+sorted_by_value = sorted(itenary.items(), key=lambda kv: kv[1] ,reverse = True)
+with open('//mnt//non-ssd//hackathon//sorted_itenary.csv','w') as f:
+    w = csv.writer(f)
+    w.writerows(sorted_by_value.items())
+
+
+
