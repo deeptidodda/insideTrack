@@ -13,7 +13,7 @@ import org.springframework.context.annotation.PropertySource;
 @SpringBootApplication(exclude={MongoAutoConfiguration.class, MongoDataAutoConfiguration.class, EmbeddedMongoAutoConfiguration.class,
 		JmxAutoConfiguration.class, SpringApplicationAdminJmxAutoConfiguration.class, 
 		IntegrationAutoConfiguration.class})
-@PropertySource(ignoreResourceNotFound = true, value = { "file:/opt/pricing/engine/properties/journey.properties",
+@PropertySource(ignoreResourceNotFound = true, value = { "file:/opt/pricing/engine/properties/journey_inside_track.properties",
 		"file:/opt/pricing/engine/properties/redis.properties",
 		"file:/opt/pricing/engine/properties/metrics.properties",
 		"file:/opt/pricing/engine/properties/engine-neo4j.properties" })
