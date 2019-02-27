@@ -11,23 +11,38 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import lombok.RequiredArgsConstructor;
+import net.atpco.engine.common.cache.QueryCacheConfiguration;
+import net.atpco.journey.client.JourneyClientHelper;
+import net.atpco.journey.request.ItineraryBuddy;
+import net.atpco.pricing.version.QueryVersionHelper;
+import net.atpco.version.common.VersionQuery;
 
 @RequiredArgsConstructor
-@RestController
 @RequestMapping("/transform")
 public class TransformerController {
 	
-	private final SalesDataReader dataReader;
+	private final QueryVersionHelper versionHelper;
 	private final ItineraryGenerator itineraryGenerator;
+	private final QueryCacheConfiguration loc;
+	private final JourneyClientHelper journeyClientHelper;
+	private final ItineraryBuddy buddy;
 	
 	@RequestMapping("/ping")
 	public String ping() {
 		return "PONG";
 	}
 
-	@RequestMapping("/js")
-	public void transformSalesData() {
+	@RequestMapping(value = "/js", method = { RequestMethod.POST})
+	public void transformSalesData(@RequestBody ItineraryGeneratorRequest request) {
+		Long version = versionHelper.getLiveVersion();
 
+		if(version == null) {
+			version = 1L;
+		}
+		VersionQuery.set(version);
+		loc.cacheManager().tpmMileage();
+		loc.cacheManager().mileage();
+		SalesDataReader dataReader = new SalesDataReader(null, journeyClientHelper, versionHelper, buddy);
 		dataReader.read(Paths.get("/hack/insideTrack/data/itinerary.csv"));
 	}
 

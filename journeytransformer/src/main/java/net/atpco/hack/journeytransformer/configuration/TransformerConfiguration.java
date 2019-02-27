@@ -19,6 +19,7 @@ import net.atpco.engine.common.cache.QueryVersionConfiguration;
 import net.atpco.engine.common.configuration.LocationEngineConfiguration;
 import net.atpco.hack.journeytransformer.client.ItineraryGenerator;
 import net.atpco.hack.journeytransformer.client.SalesDataReader;
+import net.atpco.hack.journeytransformer.client.TransformerController;
 import net.atpco.journey.client.JourneyClientHelper;
 import net.atpco.journey.configuration.JourneyClientCommonConfiguration;
 import net.atpco.journey.configuration.JourneyClientConfiguration;
@@ -49,6 +50,11 @@ public class TransformerConfiguration {
 	    MappingJackson2HttpMessageConverter converter = 
 	        new MappingJackson2HttpMessageConverter(mapper);
 	    return converter;
+	}
+	
+	@Bean
+	public TransformerController transformerController(){
+		return new TransformerController(versionHelper, itineraryGenerator(), loc, journeyClientHelper,  buildItineraryBuddy(-1, -1, -1, -1, -1, -1, null));
 	}
 	
 	@Bean

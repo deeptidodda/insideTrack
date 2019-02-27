@@ -33,6 +33,7 @@ public class SalesDataReader extends CSVFileReader<SalesData>{
 	private final JourneyClientHelper journeyClientHelper;
 	private final QueryVersionHelper versionHelper;
 	private final ItineraryBuddy buddy;
+	private final ItineraryGeneratorRequest request;
 	
 	private final TransformResponse transformResponse = new TransformResponse();
 	
@@ -42,11 +43,12 @@ public class SalesDataReader extends CSVFileReader<SalesData>{
 	
 	private DateFormat tkDf = new SimpleDateFormat("ddMMMyy");
 
-	public SalesDataReader(Loader loader, JourneyClientHelper journeyClientHelper, QueryVersionHelper versionHelper, ItineraryBuddy buddy) {
+	public SalesDataReader(Loader loader, JourneyClientHelper journeyClientHelper, QueryVersionHelper versionHelper, ItineraryBuddy buddy, ItineraryGeneratorRequest request) {
 		super(loader, true);
 		this.journeyClientHelper = journeyClientHelper;
 		this.versionHelper = versionHelper;
 		this.buddy = buddy;
+		this.request = request;
 	}
 
 	@SneakyThrows
@@ -63,6 +65,23 @@ public class SalesDataReader extends CSVFileReader<SalesData>{
 			String origin = flightPath[0];
 			String destination = flightPath[flightPath.length-1];
 
+			if(request.getOrigin() != null) {
+				if(!origin.equalsIgnoreCase(request.getOrigin())) {
+					return null;
+				}
+			}
+			if(request.getDestination() != null) {
+				if(!origin.equalsIgnoreCase(request.getDestination())) {
+					return null;
+				}
+			}
+			
+			if(request.getCarriers() != null) {
+				if(!Arrays.equals(data.getMarketingCarriers(), request.getCarriers())) {
+					return null;
+				}
+			}
+			
 			Date stdate = srcDf.parse(data.getFlightDates()[0]);
 			DateRange travelStartDateRange = new DateRange(stdate, stdate);
 			Date ticketingDate = tkDf.parse(data.getTicketingDate());
