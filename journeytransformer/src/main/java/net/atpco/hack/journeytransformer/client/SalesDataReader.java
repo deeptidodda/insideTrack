@@ -71,7 +71,7 @@ public class SalesDataReader extends CSVFileReader<SalesData>{
 				}
 			}
 			if(request.getDestination() != null) {
-				if(!origin.equalsIgnoreCase(request.getDestination())) {
+				if(!destination.equalsIgnoreCase(request.getDestination())) {
 					return null;
 				}
 			}
