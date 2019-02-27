@@ -42,7 +42,7 @@ public class TransformerController {
 		VersionQuery.set(version);
 		loc.cacheManager().tpmMileage();
 		loc.cacheManager().mileage();
-		SalesDataReader dataReader = new SalesDataReader(null, journeyClientHelper, versionHelper, buddy);
+		SalesDataReader dataReader = new SalesDataReader(null, journeyClientHelper, versionHelper, buddy, request);
 		dataReader.read(Paths.get("/hack/insideTrack/data/itinerary.csv"));
 	}
 

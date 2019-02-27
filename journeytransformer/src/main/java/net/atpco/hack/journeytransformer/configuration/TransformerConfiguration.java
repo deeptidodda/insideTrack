@@ -18,7 +18,6 @@ import net.atpco.engine.common.cache.QueryCacheConfiguration;
 import net.atpco.engine.common.cache.QueryVersionConfiguration;
 import net.atpco.engine.common.configuration.LocationEngineConfiguration;
 import net.atpco.hack.journeytransformer.client.ItineraryGenerator;
-import net.atpco.hack.journeytransformer.client.SalesDataReader;
 import net.atpco.hack.journeytransformer.client.TransformerController;
 import net.atpco.journey.client.JourneyClientHelper;
 import net.atpco.journey.configuration.JourneyClientCommonConfiguration;
@@ -28,7 +27,6 @@ import net.atpco.journey.request.ItineraryBuddy;
 import net.atpco.journey.request.ItineraryBuddy.BuddyField;
 import net.atpco.journey.request.ItineraryFilterOption;
 import net.atpco.pricing.version.QueryVersionHelper;
-import net.atpco.version.common.VersionQuery;
 
 @Configuration
 @PropertySource(ignoreResourceNotFound = true, value = { "file:/opt/pricing/engine/properties/journey.properties",
@@ -57,18 +55,18 @@ public class TransformerConfiguration {
 		return new TransformerController(versionHelper, itineraryGenerator(), loc, journeyClientHelper,  buildItineraryBuddy(-1, -1, -1, -1, -1, -1, null));
 	}
 	
-	@Bean
-	public SalesDataReader salesDataReader(){
-		Long version = versionHelper.getLiveVersion();
-
-		if(version == null) {
-			version = 1L;
-		}
-		VersionQuery.set(version);
-		loc.cacheManager().tpmMileage();
-		loc.cacheManager().mileage();
-		return new SalesDataReader(null, journeyClientHelper, versionHelper, buildItineraryBuddy(-1, -1, -1, -1, -1, -1, null));
-	}
+//	@Bean
+//	public SalesDataReader salesDataReader(){
+//		Long version = versionHelper.getLiveVersion();
+//
+//		if(version == null) {
+//			version = 1L;
+//		}
+//		VersionQuery.set(version);
+//		loc.cacheManager().tpmMileage();
+//		loc.cacheManager().mileage();
+//		return new SalesDataReader(null, journeyClientHelper, versionHelper, buildItineraryBuddy(-1, -1, -1, -1, -1, -1, null));
+//	}
 	
 	@Bean
 	public ItineraryGenerator itineraryGenerator(){
