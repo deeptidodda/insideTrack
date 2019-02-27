@@ -53,6 +53,13 @@ public class TransformResponse {
 	public void transform(FareComponentResponse response, String outFileName, 
 			BiPredicate<Itinerary, Flights> exportFilter,
 			BiPredicate<Itinerary, Flights> markInclude) throws IOException {
+		
+		List<Journey> journeys = response.getJourneys();
+		long minDuration =  getMinTotalDuration(journeys, exportFilter);
+		
+		for (Journey journey : journeys) {
+		
+		
 		try (PrintStream os = new PrintStream(Files.newOutputStream(Paths.get(outFileName)), true)) {
 			os.println("DPTR_TM1,DPTR_TM2,DPTR_TM3,DPTR_TM4,DPTR_TM5,DPTR_TM6,DPTR_TM7,DPTR_TM8," +
 					"ARRV_TM1,ARRV_TM2,ARRV_TM3,ARRV_TM4,ARRV_TM5,ARRV_TM6,ARRV_TM7,ARRV_TM8," +
@@ -64,10 +71,7 @@ public class TransformResponse {
 					"NUM_CONNECTIONS,LAST_ARRIVAL,TOTAL_DUR_MIN,TOTAL_CONNECTION_TIME_MIN," +
 					"MAX_CONNECTION_TIME_MINUTES,DEPARTURE_DOW,ARRIVAL_DOW,FLIGHT_CHANGE,RELATIVE_DURATION,INCLUDE");
 
-			List<Journey> journeys = response.getJourneys();
-			long minDuration =  getMinTotalDuration(journeys, exportFilter);
 			
-			for (Journey journey : journeys) {
 				JourneyFlights jf = journey.getJourneyFlights();
 				for (Itinerary itinerary : jf.getItineraires()) {
 					Range<Integer> range = jf.getRange(itinerary);
