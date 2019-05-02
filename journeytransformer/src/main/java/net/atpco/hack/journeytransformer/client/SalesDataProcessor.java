@@ -137,9 +137,9 @@ public class SalesDataProcessor {
 		if (!Arrays.equals(carrierCodes, marketingCarriers)) {
 			return false;
 		}
-		if (!Arrays.equals(getFlightNumbers(flights), salesData.getMarketingFlightNumbers())) {
+		/*if (!Arrays.equals(getFlightNumbers(flights), salesData.getMarketingFlightNumbers())) {
 			return false;
-		}
+		}*/
 
 		log.info("Match Found!");
 		return true;

@@ -73,7 +73,12 @@ public class TransformerController {
 			}
 		});
 		
-//		service.awaitTermination(3600, TimeUnit.HOURS);
+		try {
+			service.awaitTermination(3600, TimeUnit.HOURS);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 //		dataReader.read(Paths.get("/hack/insideTrack/data/itinerary.csv"));
 	}
 

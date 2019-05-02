@@ -117,8 +117,8 @@ public class SalesDataReader {
 			querySb.append(" FROM REVGRP.TAX_WRPR_COUP_RQST_HIST where CREATE_TS >=") ;
 			querySb.append(" cast (DATE(CURRENT TIMESTAMP) as timestamp) - " + querySpan + " DAYS") ;
 			querySb.append(" and CREATE_TS <") ;
-			querySb.append(" cast (DATE(CURRENT TIMESTAMP) as timestamp)  AND FLT_DPRT_TS is NOT NULL AND FLT_ARRVL_TS is NOT NULL order by PRIM_TKT_NO,COUP_NO") ;
-//			querySb.append(" FETCH FIRST 1000 ROWS ONLY") ; // TODO remove when tested
+			querySb.append(" cast (DATE(CURRENT TIMESTAMP) as timestamp)   AND FLT_DPRT_TS is NOT NULL AND FLT_ARRVL_TS is NOT NULL order by PRIM_TKT_NO,COUP_NO") ;
+//			querySb.append(" FETCH FIRST 10 ROWS ONLY") ; // TODO remove when tested
 			querySb.append(" WITH UR;") ;
 			String query = querySb.toString() ;
 			System.out.println("**** Created query: " + query) ;
@@ -138,15 +138,23 @@ public class SalesDataReader {
 			// ticketNo -> [ columnName -> columnValue(s) ]
 			Map<String, Map<String, StringBuilder>> outputString = new HashMap<String, Map<String, StringBuilder>>() ;
 			boolean isFirst = false;
+			Timestamp prevTimestamp = null;
+			int partNo = 0;
 			while (rs.next()) {
 				String ticketNo = rs.getString("PRIM_TKT_NO") ;
 				int couponNo = rs.getInt("COUP_NO") ;
-				Map<String, StringBuilder> outputBuilder = outputString.get(ticketNo) ;
-
-				if(outputBuilder == null) {
+				Map<String, StringBuilder> outputBuilder = outputString.get(ticketNo +":" + partNo) ;
+				Timestamp currentTimestamp =rs.getTimestamp("FLT_DPRT_TS");
+				if((outputBuilder == null )) {
+					partNo = 0;
+					prevTimestamp = currentTimestamp;
+				}else if ((currentTimestamp.getTime() - prevTimestamp.getTime() > 86400000) )  {
+					partNo ++;
+				}
+				if((outputBuilder == null ) || (currentTimestamp.getTime() - prevTimestamp.getTime() > 86400000) ) {
 					isFirst = true;
 					outputBuilder = new HashMap<String, StringBuilder>() ;
-					outputString.put(ticketNo, outputBuilder) ;
+					outputString.put(ticketNo +":" + partNo, outputBuilder) ;
 					currentTktNo = ticketNo ;
 					currentCoupNo = couponNo ;
 				}
@@ -163,7 +171,7 @@ public class SalesDataReader {
 					// ""
 					isFirst = false;
 					outputBuilder.put("", new StringBuilder("0")) ;
-
+					prevTimestamp = rs.getTimestamp("FLT_DPRT_TS");
 					// DPTR_TM
 					StringBuilder sb = new StringBuilder() ;
 					if(timestampToString(rs.getTimestamp("FLT_DPRT_TS"), timeMask) == null) {
@@ -218,7 +226,6 @@ public class SalesDataReader {
 					// This coupon number has already been started
 
 					// DPTR_TM		11:50;14:40
-					
 					StringBuilder sb = outputBuilder.get("DPTR_TM") ;
 					if(outputBuilder.get("DPTR_TM") == null) {
 						sb = new StringBuilder("");
@@ -319,7 +326,7 @@ public class SalesDataReader {
 						outputBuilder.get(outputColumns.get(7)).toString().split(";"), outputBuilder.get(outputColumns.get(8)).toString(), 
 						outputBuilder.get(outputColumns.get(9)).toString().split(";"));
 				blockingQueue.put(sd);
-				/*for(int i = 0; i < outputColumns.size() ; i++) {
+			/*	for(int i = 0; i < outputColumns.size() ; i++) {
 					String columnName = outputColumns.get(i) ;
 					StringBuilder sb = outputBuilder.get(columnName) ;
 					if(sb != null) System.out.print(sb.toString()) ;
