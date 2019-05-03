@@ -29,7 +29,7 @@ import net.atpco.journey.request.ItineraryFilterOption;
 import net.atpco.pricing.version.QueryVersionHelper;
 
 @Configuration
-@PropertySource(ignoreResourceNotFound = true, value = { "file:/opt/pricing/engine/properties/journey.properties",
+@PropertySource(ignoreResourceNotFound = true, value = { "file:/opt/pricing/engine/properties/journey_inside_track.properties",
 		"file:/opt/pricing/engine/properties/redis.properties",
 		"file:/opt/pricing/engine/properties/metrics.properties",
 		"file:/opt/pricing/engine/properties/engine-neo4j.properties" })

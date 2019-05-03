@@ -72,7 +72,7 @@ public class SalesDataProcessor {
 
 				String origin = flightPath[0];
 				String destination = flightPath[flightPath.length-1];
-/*
+
 				if(request.getOrigin() != null) {
 					if(!origin.equalsIgnoreCase(request.getOrigin())) {
 						continue;
@@ -88,7 +88,7 @@ public class SalesDataProcessor {
 					if(!Arrays.equals(data.getMarketingCarriers(), request.getCarriers())) {
 						continue;
 					}
-				}*/
+				}
 
 				Date stdate = srcDf.parse(data.getFlightDates()[0]);
 				DateRange travelStartDateRange = new DateRange(stdate, stdate);
@@ -100,6 +100,8 @@ public class SalesDataProcessor {
 					version = 1L;
 				}
 				VersionQuery.set(version);
+
+				
 				JourneyQuery query = new JourneyQuery(origin, destination, travelStartDateRange, null, "OW", true, buddy, CityAirportFCType.AIRPORT, version);
 
 				FareComponentResponse response = journeyClientHelper.getJourneys(query);
